@@ -1,5 +1,7 @@
 package org.dissys;
 
+import org.dissys.network.P2PNode;
+
 import java.io.IOException;
 import java.util.List;
 

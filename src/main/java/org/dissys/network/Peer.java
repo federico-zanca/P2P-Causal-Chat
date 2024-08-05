@@ -1,4 +1,4 @@
-package org.dissys;
+package org.dissys.network;
 
 import java.net.InetAddress;
 

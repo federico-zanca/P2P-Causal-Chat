@@ -1,9 +1,9 @@
-package org.dissys;
+package org.dissys.network;
 import java.net.*;
 import java.io.*;
 import java.util.*;
 
-class P2PNode {
+public class P2PNode {
     private int port;
     private List<Peer> knownPeers;
     private ServerSocket serverSocket;

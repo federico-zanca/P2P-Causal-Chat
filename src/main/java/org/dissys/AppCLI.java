@@ -8,11 +8,18 @@ public class AppCLI {
     private final P2PChat chat;
     private final Scanner scanner;
 
+    /**
+     * constructor creates a CLI and saves the parameter chat as the application
+     * @param chat
+     */
     public AppCLI(P2PChat chat) {
         this.chat = chat;
         this.scanner = new Scanner(System.in);
     }
 
+    /**
+     * starts the CLI, the command help can be used to see what commands are available
+     */
     public void start() {
         System.out.println("Welcome to P2P Chat!");
         while (true) {

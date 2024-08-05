@@ -147,5 +147,10 @@ public enum ChatCommand implements Command {
         }
     };
 
+    /**
+     * executes the command sent by calling the functions in chat
+     * @param chat
+     * @param args
+     */
     public abstract void execute(P2PChat chat, String[] args);
 }

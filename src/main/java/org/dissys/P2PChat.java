@@ -15,12 +15,14 @@ public class P2PChat {
     }
 
     public void createRoom(String roomName) {
+        //TODO
         // Implement room creation logic
         // For now, let's just store it locally
         node.createRoom(roomName);
     }
 
     public void joinRoom(String roomName) {
+        //TODO
         // Implement room joining logic
         if (node.roomExists(roomName)) {
             currentRoom = roomName;

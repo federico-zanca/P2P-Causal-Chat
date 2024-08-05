@@ -13,6 +13,6 @@ class Peer {
     public int getPort() {
         return 0;
     }
-
+    //TODO
     // Constructor, getters, setters
 }

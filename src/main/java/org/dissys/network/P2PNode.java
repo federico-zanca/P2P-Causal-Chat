@@ -18,6 +18,7 @@ public class P2PNode {
 
     public void createRoom(String roomName) {
         rooms.add(roomName);
+        //TODO
         // In a real implementation, you'd broadcast this to other peers
     }
 
@@ -30,6 +31,7 @@ public class P2PNode {
     }
 
     public void sendMessage(String roomName, String message) {
+        //TODO
         // In a real implementation, you'd send this to all peers in the room
         System.out.println("Sending message to " + roomName + ": " + message);
     }
@@ -64,6 +66,7 @@ public class P2PNode {
     }
 
     private void processMessage(String message, PrintWriter out) {
+        //TODO
         // Implement your message processing logic here
         // For example:
         if (message.startsWith("GET:")) {
@@ -77,6 +80,7 @@ public class P2PNode {
     }
 
     private void discoverPeers() {
+        //TODO
         // Implement peer discovery
         // This could involve broadcasting on the local network or contacting known peers
     }

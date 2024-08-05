@@ -1,22 +1,22 @@
 package org.dissys.messages;
 
 import org.dissys.User;
-
+import org.dissys.Room;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Message {
     private String senderId;
     private User sender;
-    private User receiver;
+    private Room rcvRoom;
     private String content;
     private Map<String, Integer> vectorClock;
     //private Map<User, Integer> vectorClock;
 
-    public Message(String senderId, User sender, User receiver, String content, Map<String, Integer> vectorClock) {
+    public Message(String senderId, User sender, Room receiver, String content, Map<String, Integer> vectorClock) {
         this.senderId = senderId;
         this.sender = sender;
-        this.receiver = receiver;
+        this.rcvRoom = receiver;
         this.content = content;
         this.vectorClock = vectorClock;
     }
@@ -42,8 +42,8 @@ public class Message {
         return sender;
     }
 
-    public User getReceiver() {
-        return receiver;
+    public Room getReceiver() {
+        return rcvRoom;
     }
 
     @Override

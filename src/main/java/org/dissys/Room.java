@@ -11,10 +11,11 @@ public class Room {
     private List<User> users;
     private List<Message> messageLog;
     private Map<String, Map<String, Integer>> vectorClocks; // Per-user vector clocks
+    private Set<Message> deliveredMessages; // Track delivered messages by their IDs
 
     public Room() {
         this.roomId = UUID.randomUUID().toString();
-        this.users = new ArrayList<>();
+    this.users = new ArrayList<>(); // Initialize list of users
         this.messageLog = new ArrayList<>();
         this.vectorClocks = new HashMap<>();
     }
@@ -46,6 +47,7 @@ public class Room {
         System.out.println(user.getUsername() + " left the room.");
     }
 
+
     public void sendMessage(User sender, String content) {
         Map<String, Integer> senderClock = vectorClocks.get(sender.getUserId());
         senderClock.put(sender.getUserId(), senderClock.get(sender.getUserId()) + 1); // Increment sender's clock
@@ -60,7 +62,10 @@ public class Room {
         messageLog.sort(Comparator.comparing(m -> m.getVectorClock().get(m.getSenderId())));
 
         for (Message message : messageLog) {
-            System.out.println("src.main.java.messsages.Message from " + message.getSenderId() + ": " + message.getContent());
+            if (!deliveredMessages.contains(message)) {
+                System.out.println("Message from " + message.getSenderId() + ": " + message.getContent());
+                deliveredMessages.add(message);
+            }
         }
     }
 }

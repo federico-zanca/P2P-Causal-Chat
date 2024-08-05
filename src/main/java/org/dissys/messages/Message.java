@@ -2,6 +2,8 @@ package org.dissys.messages;
 
 import org.dissys.User;
 import org.dissys.Room;
+import org.dissys.VectorClock;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,13 +12,13 @@ public class Message {
     private User sender;
     private Room rcvRoom;
     private String content;
-    private Map<String, Integer> vectorClock;
+    private VectorClock vectorClock;
     //private Map<User, Integer> vectorClock;
 
-    public Message(String senderId, User sender, Room receiver, String content, Map<String, Integer> vectorClock) {
+    public Message(String senderId, User sender, Room room, String content, VectorClock vectorClock) {
         this.senderId = senderId;
         this.sender = sender;
-        this.rcvRoom = receiver;
+        this.rcvRoom = room;
         this.content = content;
         this.vectorClock = vectorClock;
     }
@@ -28,13 +30,11 @@ public class Message {
         return senderId;
     }
 
-
-
     public String getContent() {
         return content;
     }
 
-    public Map<String, Integer> getVectorClock() {
+    public VectorClock getVectorClock() {
         return vectorClock;
     }
 

@@ -1,6 +1,8 @@
-package src.main.java;
+package org.dissys;
 
-import src.main.java.messages.Message;
+
+
+import org.dissys.messages.Message;
 
 import java.util.*;
 

@@ -2,7 +2,7 @@ package org.dissys;
 
 import java.util.UUID;
 
-class User {
+public class User {
     private final UUID id;
     private String name;
 
@@ -11,11 +11,14 @@ class User {
         this.name = name;
     }
 
-    public UUID getId() {
+    public UUID getUUId() {
         return id;
     }
+    public String getUserId() {
+        return id.toString();
+    }
 
-    public String getName() {
+    public String getUsername() {
         return name;
     }
 

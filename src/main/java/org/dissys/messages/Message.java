@@ -1,5 +1,8 @@
-package src.main.java.messages;
+package org.dissys.messages;
 
+import org.dissys.User;
+
+import java.util.HashMap;
 import java.util.Map;
 
 public class Message {
@@ -16,6 +19,9 @@ public class Message {
         this.receiver = receiver;
         this.content = content;
         this.vectorClock = vectorClock;
+    }
+    //sender is not set here
+    public Message(String userId, String content, HashMap<String, Integer> stringIntegerHashMap) {
     }
 
     public String getSenderId() {

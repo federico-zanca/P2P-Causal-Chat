@@ -128,6 +128,31 @@ public enum ChatCommand implements Command {
             return "Print this help message";
         }
     },
+    SET_USERNAME {
+        @Override
+        public void execute(P2PChat chat, String[] args) {
+            if (args.length < 1) {
+                System.out.println(getUsage());
+                return;
+            }
+            boolean success = chat.setUsername(args[0]);
+            if (success) {
+                System.out.println("Username set successfully: " + args[0]);
+            } else {
+                System.out.println("Failed to set username. It may already be in use.");
+            }
+        }
+
+        @Override
+        public String getUsage() {
+            return "set_username <username>";
+        }
+
+        @Override
+        public String getDescription() {
+            return "Set your username";
+        }
+    },
 
     EXIT {
         @Override
@@ -146,6 +171,7 @@ public enum ChatCommand implements Command {
             return "Exit the application";
         }
     };
+
 
     /**
      * executes the command sent by calling the functions in chat

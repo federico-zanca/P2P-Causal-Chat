@@ -18,7 +18,7 @@ public class User {
     /**
      * @return the UUID object of this User
      */
-    public UUID getUUId() {
+    public UUID getId() {
         return id;
     }
 

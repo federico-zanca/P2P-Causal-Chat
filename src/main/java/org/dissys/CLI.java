@@ -1,10 +1,9 @@
 package org.dissys;
 import org.dissys.Commands.ChatCommand;
 
-import java.util.List;
 import java.util.Scanner;
 
-public class AppCLI {
+public class CLI {
     private final P2PChat chat;
     private final Scanner scanner;
 
@@ -12,7 +11,7 @@ public class AppCLI {
      * constructor creates a CLI and saves the parameter chat as the application
      * @param chat
      */
-    public AppCLI(P2PChat chat) {
+    public CLI(P2PChat chat) {
         this.chat = chat;
         this.scanner = new Scanner(System.in);
     }

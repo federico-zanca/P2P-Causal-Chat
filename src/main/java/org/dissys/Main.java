@@ -9,7 +9,7 @@ public class Main {
     public static void main(String[] args) {
         try {
             P2PChat chat = new P2PChat(InetAddress.getLocalHost(), 8000); // Choose an appropriate port
-            AppCLI cli = new AppCLI(chat);
+            CLI cli = new CLI(chat);
             cli.start();
         } catch (IOException e) {
             System.out.println("Failed to start chat: " + e.getMessage());

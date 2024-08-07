@@ -1,29 +1,33 @@
 package org.dissys.messages;
 
-import org.dissys.User;
 import org.dissys.Room;
+import org.dissys.User;
+import org.dissys.UglyRoom;
 import org.dissys.VectorClock;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class Message {
     private String senderId;
     private User sender;
-    private Room rcvRoom;
+    private UglyRoom rcvUglyRoom;
+    private Room room;
     private String content;
     private VectorClock vectorClock;
     //private Map<User, Integer> vectorClock;
 
-    public Message(String senderId, User sender, Room room, String content, VectorClock vectorClock) {
+    public Message(String senderId, User sender, UglyRoom room, String content, VectorClock vectorClock) {
         this.senderId = senderId;
         this.sender = sender;
-        this.rcvRoom = room;
+        this.rcvUglyRoom = room;
         this.content = content;
         this.vectorClock = vectorClock;
     }
-    //sender is not set here
-    public Message(String userId, String content, HashMap<String, Integer> stringIntegerHashMap) {
+
+    public Message(String senderId, User sender, Room room, String content, VectorClock vectorClock) {
+        this.senderId = senderId;
+        this.sender = sender;
+        this.room = room;
+        this.content = content;
+        this.vectorClock = vectorClock;
     }
 
     public String getSenderId() {
@@ -42,8 +46,8 @@ public class Message {
         return sender;
     }
 
-    public Room getReceiver() {
-        return rcvRoom;
+    public UglyRoom getReceiver() {
+        return rcvUglyRoom;
     }
 
     @Override

@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class VectorClock {
-    private Map<String, Integer> clock;
+    private final Map<String, Integer> clock;
 
     /** Constructor initializes the vector clock for a set of participants
      *
@@ -14,6 +14,17 @@ public class VectorClock {
     public VectorClock(Set<String> participants) {
         this.clock = new HashMap<>();
         initializeClockForParticipants(participants);
+    }
+
+    public VectorClock(VectorClock clock){
+        this.clock = new HashMap<>(clock.getClock());
+    }
+
+    public VectorClock(int size){
+        this.clock = new HashMap<>();
+        for (int i = 0; i < size; i++) {
+            this.clock.put(String.valueOf(i), 0);
+        }
     }
 
     /** Initialize the clock for all participants with a starting value of 0
@@ -30,7 +41,7 @@ public class VectorClock {
      *
      * @param userId
      */
-    public void incrementLocalClock(String userId) {
+    public void incrementClock(String userId) {
         clock.compute(userId, (k, currentTimestamp) -> currentTimestamp != null ? currentTimestamp + 1 : 0);
     }
 

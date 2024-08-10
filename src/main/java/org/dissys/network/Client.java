@@ -11,11 +11,12 @@ import java.util.concurrent.*;
 
 //might need to make observable
 public class Client {
-    private static final String MULTICAST_ADDRESS = "230.0.0.0";
-    private static final int PORT = 4446;
+    private static final String MULTICAST_ADDRESS = "239.1.1.1";
+    private static final int PORT = 5000;
     private static final long HEARTBEAT_INTERVAL = 5000; // 5 seconds
     private static final long PEER_TIMEOUT = 15000; // 15 seconds
     private final UUID uuid;
+    private final InetAddress group;
     private P2PChatApp app;
     private String username;
     private Map<String, UUID> usernameRegistry;
@@ -24,12 +25,17 @@ public class Client {
     private NetworkInterface networkInterface;
 
 
-    public Client(P2PChatApp app) throws IOException {
+    public Client(P2PChatApp app){
         this.app = app;
         uuid = UUID.randomUUID();
         this.usernameRegistry = new ConcurrentHashMap<>();
         this.connectedPeers = new ConcurrentHashMap<>();
-        connectToGroup(InetAddress.getByName(MULTICAST_ADDRESS), PORT);
+        try {
+            group = InetAddress.getByName(MULTICAST_ADDRESS);
+            connectToGroup(group, PORT);
+        } catch (IOException e) {
+            throw new RuntimeException("unable to connect to group");
+        }
     }
     public void start(){
         // Start listening for peer messages
@@ -53,10 +59,11 @@ public class Client {
             throw new IOException("no suitable network interface found");
         }
         multicastSocket.joinGroup(new InetSocketAddress(groupAddress, port), networkInterface);
+        System.out.println("connected to multicast socket " + multicastSocket.getLocalSocketAddress() + " with port " + multicastSocket.getLocalPort());
 
     }
     private void leaveGroup() throws IOException {
-        multicastSocket.leaveGroup(new InetSocketAddress(multicastSocket.getInetAddress(), multicastSocket.getPort()), networkInterface);
+        multicastSocket.leaveGroup(new InetSocketAddress(group, PORT), networkInterface);
         multicastSocket.close();
     }
 
@@ -78,6 +85,7 @@ public class Client {
 
 
     public void sendMessage(Message message) {
+        System.out.println("Sending " + message);
         try {
             // Serialize the Message object
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -88,7 +96,7 @@ public class Client {
             // Get the byte array of the serialized object
             byte[] buffer = baos.toByteArray();
 
-            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, multicastSocket.getInetAddress(), multicastSocket.getPort());
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, PORT);
             multicastSocket.send(packet);
 
             // Close the streams
@@ -102,62 +110,29 @@ public class Client {
     private void receiveMessages() {
         byte[] buffer = new byte[8192]; // Increased buffer size for serialized objects
         DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-        ByteArrayInputStream bais = new ByteArrayInputStream(buffer);
-        ObjectInputStream ois = null;
+
 
         while (!Thread.currentThread().isInterrupted()) {
             try {
                 multicastSocket.receive(packet);
-
-                bais.reset();
-                bais = new ByteArrayInputStream(packet.getData(), 0, packet.getLength());
-
-                if (ois == null) {
-                    ois = new ObjectInputStream(bais);
-                } else {
-                    ois = new ObjectInputStream(bais) {
-                        @Override
-                        protected void readStreamHeader() throws IOException {}
-                    };
-                }
+                ByteArrayInputStream bais = new  ByteArrayInputStream(packet.getData(), 0, packet.getLength());
+                ObjectInputStream ois = new ObjectInputStream(bais);
 
                 Message message = (Message) ois.readObject();
-                processMessage(message); //tolto packet.getAddress()
+                processMessage(message);
+
+                ois.close();
+                bais.close();
+
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
                 break;
             }
         }
-
-        // Close streams when done
-        if (ois != null) {
-            try {
-                ois.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        try {
-            bais.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        /*
-        byte[] buffer = new byte[1024];
-        DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-        while (!Thread.currentThread().isInterrupted()) {
-            try {
-                multicastSocket.receive(packet);
-                String message = new String(packet.getData(), 0, packet.getLength());
-                processMessage(message, packet.getAddress());
-            } catch (IOException e) {
-                e.printStackTrace();
-                break;
-            }
-        }*/
     }
     private void processMessage(Message message) {
         if(!message.getSenderId().equals(uuid)){
+            System.out.println("Processing " + message);
             message.onMessage(this);
         }
         /*
@@ -197,7 +172,7 @@ public class Client {
     }
     public void stop() {
         try {
-            multicastSocket.leaveGroup(new InetSocketAddress(multicastSocket.getInetAddress(), multicastSocket.getPort()), networkInterface);
+            multicastSocket.leaveGroup(new InetSocketAddress(group, PORT), networkInterface);
             multicastSocket.close();
         } catch (IOException e) {
             e.printStackTrace();

@@ -10,20 +10,15 @@ import java.util.concurrent.ConcurrentHashMap;
 public class P2PChatApp {
 
     public static void main(String[] args){
-        try {
-            P2PChatApp app = new P2PChatApp();
-            CLI cli = new CLI(app);
-            Client client = new Client(app);
+        P2PChatApp app = new P2PChatApp();
+        CLI cli = new CLI(app);
+        Client client = new Client(app);
 
-            app.setCLI(cli);
-            app.setClient(client);
+        app.setCLI(cli);
+        app.setClient(client);
 
-            client.start();
-            cli.start();
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        client.start();
+        cli.start();
 
     }
     private Client client;

@@ -19,9 +19,5 @@ public abstract class Message implements Serializable {
         return senderId;
     }
     @Override
-    public String toString() {
-        return "src.main.java.messages.Message{" +
-                "senderId='" + senderId + '\'' +
-                '}';
-    }
+    public abstract String toString();
 }

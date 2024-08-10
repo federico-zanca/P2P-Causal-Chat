@@ -13,4 +13,9 @@ public class HeartbeatMsg extends Message{
     public void onMessage(Client client) {
         client.updatePeerList(getSenderId());
     }
+
+    @Override
+    public String toString() {
+        return "HeartbeatMsg: senderID{"  + getSenderId().toString() + "}";
+    }
 }

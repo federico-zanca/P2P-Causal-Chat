@@ -14,4 +14,9 @@ public class DiscoveryMsg extends Message{
         client.updatePeerList(getSenderId()); //should do it anyway
         client.sendMessage(new HeartbeatMsg(client.getUUID()));
     }
+
+    @Override
+    public String toString() {
+        return "DiscoveryMsg: senderID{" + getSenderId().toString() + "}" ;
+    }
 }

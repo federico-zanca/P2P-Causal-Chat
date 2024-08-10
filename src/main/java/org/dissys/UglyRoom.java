@@ -2,7 +2,7 @@ package org.dissys;
 
 
 
-import org.dissys.messages.Message;
+import org.dissys.messages.Message1;
 
 import java.util.*;
 
@@ -11,9 +11,9 @@ public class UglyRoom {
 
     private List<User> participants;
     private User creator;
-    private final List<Message> roomChat;
+    private final List<Message1> roomChat;
     //private Map<String, VectorClock> vectorClocks; // Per-user vector clocks
-    private final List<Message> bufferedMessages; // Track messages that have not been delivered
+    private final List<Message1> bufferedMessages; // Track messages that have not been delivered
     private Map<User, VectorClock> participantsClocks; // Per-user vector clocks
 
     private VectorClock currentRoomClock;
@@ -53,7 +53,7 @@ public class UglyRoom {
         processMessage(message);
     }
     */
-    public synchronized void postMessage(Message message) {
+    public synchronized void postMessage(Message1 message) {
         processMessage(message);
     }
 
@@ -61,7 +61,7 @@ public class UglyRoom {
      * Checks if the message can be delivered immediately using the canDeliver method. If not, the message is buffered.
      * @param message
      */
-    private synchronized void processMessage(Message message) {
+    private synchronized void processMessage(Message1 message) {
         if (canDeliver(message)) {
             deliverMessage(message);
             checkBuffer();
@@ -75,7 +75,7 @@ public class UglyRoom {
      * @param message
      * @return
      */
-    private boolean canDeliver(Message message) {
+    private boolean canDeliver(Message1 message) {
         VectorClock messageClock = message.getVectorClock();
         String senderId = message.getSender().getUserId();
         VectorClock senderClock = participantsClocks.get(message.getSender());
@@ -99,7 +99,7 @@ public class UglyRoom {
          Adds the message to the chat log, updates the sender's vector clock, and prints the message.
     * @param message
     */
-    private synchronized void deliverMessage(Message message) {
+    private synchronized void deliverMessage(Message1 message) {
         roomChat.add(message);
         VectorClock senderClock = participantsClocks.get(message.getSender());
         senderClock.incrementClock(message.getSender().getUserId());
@@ -108,9 +108,9 @@ public class UglyRoom {
 
 
     private synchronized void checkBuffer() {
-        Iterator<Message> iterator = bufferedMessages.iterator();
+        Iterator<Message1> iterator = bufferedMessages.iterator();
         while (iterator.hasNext()) {
-            Message bufferedMessage = iterator.next();
+            Message1 bufferedMessage = iterator.next();
             if (canDeliver(bufferedMessage)) {
                 deliverMessage(bufferedMessage);
                 iterator.remove();
@@ -136,7 +136,7 @@ public class UglyRoom {
     }
     */
 
-    public void addToBuffer(Message msg){
+    public void addToBuffer(Message1 msg){
         synchronized (bufferedMessages) {
             bufferedMessages.add(msg);
         }
@@ -154,7 +154,7 @@ public class UglyRoom {
         return participants;
     }
 
-    public List<Message> getRoomChat() {
+    public List<Message1> getRoomChat() {
         return roomChat;
     }
 

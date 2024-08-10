@@ -1,20 +1,20 @@
 package org.dissys.Commands;
 
-import org.dissys.P2PChat;
+import org.dissys.P2PChatApp;
 
 import java.util.Arrays;
 import java.util.List;
 
 public enum ChatCommand implements Command {
-    CREATE {
+    /*CREATE {
         @Override
-        public void execute(P2PChat chat, String[] args) {
+        public void execute(P2PChatApp chat, String[] args) {
             if (args.length < 1) {
                 System.out.println(getUsage());
                 return;
             }
             try {
-                chat.createRoom(args[0]);
+                //chat.createRoom(args[0]);
                 System.out.println("Room created: " + args[0]);
             } catch (Exception e) {
                 System.out.println("Failed to create room: " + e.getMessage());
@@ -30,17 +30,17 @@ public enum ChatCommand implements Command {
         public String getDescription() {
             return "Create a new chat room";
         }
-    },
+    },*/
 
-    JOIN {
+    /*JOIN {
         @Override
-        public void execute(P2PChat chat, String[] args) {
+        public void execute(P2PChatApp chat, String[] args) {
             if (args.length < 1) {
                 System.out.println(getUsage());
                 return;
             }
             try {
-                chat.joinRoom(args[0]);
+                //chat.joinRoom(args[0]);
                 System.out.println("Joined room: " + args[0]);
             } catch (Exception e) {
                 System.out.println("Failed to join room: " + e.getMessage());
@@ -56,17 +56,17 @@ public enum ChatCommand implements Command {
         public String getDescription() {
             return "Join an existing chat room";
         }
-    },
+    },*/
 
-    SEND {
+    /*SEND {
         @Override
-        public void execute(P2PChat chat, String[] args) {
+        public void execute(P2PChatApp chat, String[] args) {
             if (args.length < 2) {
                 System.out.println(getUsage());
                 return;
             }
             try {
-                chat.sendMessage(args[0], String.join(" ", Arrays.copyOfRange(args, 1, args.length)));
+                //chat.sendMessage(args[0], String.join(" ", Arrays.copyOfRange(args, 1, args.length)));
                 System.out.println("Message sent to " + args[0]);
             } catch (Exception e) {
                 System.out.println("Failed to send message: " + e.getMessage());
@@ -82,11 +82,11 @@ public enum ChatCommand implements Command {
         public String getDescription() {
             return "Send a message to a room";
         }
-    },
+    },*/
 
-    LIST {
+    /*LIST {
         @Override
-        public void execute(P2PChat chat, String[] args) {
+        public void execute(P2PChatApp chat, String[] args) {
             List<String> rooms = chat.listRooms();
             if (rooms.isEmpty()) {
                 System.out.println("No rooms available.");
@@ -107,11 +107,11 @@ public enum ChatCommand implements Command {
         public String getDescription() {
             return "List available rooms";
         }
-    },
+    },*/
 
     HELP {
         @Override
-        public void execute(P2PChat chat, String[] args) {
+        public void execute(P2PChatApp chat, String[] args) {
             System.out.println("Available commands:");
             for (ChatCommand cmd : ChatCommand.values()) {
                 System.out.printf("  %-10s - %s%n", cmd.getUsage(), cmd.getDescription());
@@ -128,9 +128,9 @@ public enum ChatCommand implements Command {
             return "Print this help message";
         }
     },
-    SET_USERNAME {
+    /*SET_USERNAME {
         @Override
-        public void execute(P2PChat chat, String[] args) {
+        public void execute(P2PChatApp chat, String[] args) {
             if (args.length < 1) {
                 System.out.println(getUsage());
                 return;
@@ -152,11 +152,11 @@ public enum ChatCommand implements Command {
         public String getDescription() {
             return "Set your username";
         }
-    },
+    },*/
 
     EXIT {
         @Override
-        public void execute(P2PChat chat, String[] args) {
+        public void execute(P2PChatApp chat, String[] args) {
             System.out.println("Goodbye!");
             System.exit(0);
         }
@@ -178,5 +178,5 @@ public enum ChatCommand implements Command {
      * @param chat
      * @param args
      */
-    public abstract void execute(P2PChat chat, String[] args);
+    public abstract void execute(P2PChatApp chat, String[] args);
 }

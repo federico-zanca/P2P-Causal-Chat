@@ -1,6 +1,6 @@
 package org.dissys;
 
-import org.dissys.messages.Message;
+import org.dissys.messages.Message1;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -10,8 +10,8 @@ public class Room {
     private final String localPeerId;  // basically my id
     private final Set<String> participants; // all participants in the room (including me)
     private final VectorClock localClock; // my vector clock
-    private final Queue<Message> messageBuffer; // messages that have not been delivered
-    private final List<Message> deliveredMessages; // messages that have been delivered
+    private final Queue<Message1> messageBuffer; // messages that have not been delivered
+    private final List<Message1> deliveredMessages; // messages that have been delivered
 
 
     public Room(String roomId, String localPeerId, Set<String> participants) {
@@ -31,9 +31,9 @@ public class Room {
      * @param sender The user sending the message.
      * @return A new message with the updated vector clock.
      */
-    public Message createMessage(String content, User sender) {
+    public Message1 createMessage(String content, User sender) {
         localClock.incrementClock(localPeerId);
-        return new Message(localPeerId, sender, this, content, new VectorClock(localClock) );
+        return new Message1(localPeerId, sender, this, content, new VectorClock(localClock) );
     }
 
     /**
@@ -41,7 +41,7 @@ public class Room {
      *
      * @param message The received message.
      */
-    public void receiveMessage(Message message) {
+    public void receiveMessage(Message1 message) {
         messageBuffer.offer(message);
         processMessages();
     }
@@ -53,9 +53,9 @@ public class Room {
         boolean delivered;
         do {
             delivered = false;
-            Iterator<Message> iterator = messageBuffer.iterator();
+            Iterator<Message1> iterator = messageBuffer.iterator();
             while (iterator.hasNext()) {
-                Message message = iterator.next();
+                Message1 message = iterator.next();
                 if (canDeliver(message)) {
                     deliverMessage(message);
                     iterator.remove();
@@ -73,7 +73,7 @@ public class Room {
      * @param message The message to check for deliverability.
      * @return True if the message can be delivered, false otherwise.
      */
-    private boolean canDeliver(Message message) {
+    private boolean canDeliver(Message1 message) {
         VectorClock messageClock = message.getVectorClock();
         String sender = message.getSender().getUserId();
 
@@ -98,7 +98,7 @@ public class Room {
      *
      * @param message The message to deliver.
      */
-    private void deliverMessage(Message message) {
+    private void deliverMessage(Message1 message) {
         deliveredMessages.add(message);
         localClock.updateClock(message.getVectorClock().getClock(), message.getSender().getUserId());
         // Notify listeners or update UI
@@ -106,7 +106,7 @@ public class Room {
     }
 
 
-    public List<Message> getDeliveredMessages() {
+    public List<Message1> getDeliveredMessages() {
         return new ArrayList<>(deliveredMessages);
     }
 
@@ -122,7 +122,7 @@ public class Room {
         return new VectorClock(localClock);
     }
 
-    public List<Message> getBufferedMessages() {
+    public List<Message1> getBufferedMessages() {
         return new ArrayList<>(messageBuffer);
     }
 

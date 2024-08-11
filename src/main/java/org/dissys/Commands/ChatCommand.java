@@ -201,6 +201,29 @@ public enum ChatCommand implements Command {
         }
     },
 
+    OPEN{
+        @Override
+        public void execute(P2PChatApp chat, String[] args) {
+            if (args.length == 1) {
+                chat.getClient().openRoom(args[0]);
+            }
+            else {
+                System.out.println(getUsage());
+                return;
+            }
+        }
+
+        @Override
+        public String getUsage() {
+            return "open <room_name>"; //TODO handle rooms with the same name
+        }
+
+        @Override
+        public String getDescription() {
+            return "Open and view a chat room";
+        }
+    },
+
     VIEW_LOG {
         @Override
         public void execute(P2PChatApp chat, String[] args) {

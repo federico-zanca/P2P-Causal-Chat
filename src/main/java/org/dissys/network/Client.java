@@ -270,6 +270,15 @@ public class Client {
         return rooms.keySet();
     }
 
+    public void openRoom(String roomName) {
+        Room room = rooms.get(roomName);
+        if (room == null) {
+            System.out.println("Room not found: " + roomName);
+            return;
+        }
+        room.viewRoomChat();
+    }
+
 
     //on start get peers list from memory, if empty perform peer discovery
     /*

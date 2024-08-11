@@ -131,4 +131,10 @@ public class Room {
         participants.remove(participant);
     }
 
+    public void viewRoomChat() {
+        System.out.println("Room " + roomId + " chat:");
+        for (ChatMessage message : deliveredMessages) {
+            System.out.println(message.getSender() + ": " + message.getContent());
+        }
+    }
 }

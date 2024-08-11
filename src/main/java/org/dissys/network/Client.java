@@ -1,5 +1,6 @@
 package org.dissys.network;
 import org.dissys.P2PChatApp;
+import org.dissys.messages.ChatMessage;
 import org.dissys.messages.DiscoveryMsg;
 import org.dissys.messages.HeartbeatMsg;
 import org.dissys.messages.Message;
@@ -197,6 +198,12 @@ public class Client {
     }
     public UUID getUUID(){
         return uuid;
+    }
+
+    public void processChatMessage(String roomId, ChatMessage message) {
+        // Process the received chat message (e.g., update UI, maintain causal order)
+        logger.info("Received message in room " + roomId + ": " + message.getContent());
+        // TODO implement causal ordering logic here
     }
 
     //on start get peers list from memory, if empty perform peer discovery

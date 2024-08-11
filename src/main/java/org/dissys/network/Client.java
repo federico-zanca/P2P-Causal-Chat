@@ -3,11 +3,13 @@ import org.dissys.P2PChatApp;
 import org.dissys.messages.DiscoveryMsg;
 import org.dissys.messages.HeartbeatMsg;
 import org.dissys.messages.Message;
+import org.dissys.utils.LoggerConfig;
 
 import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.logging.Logger;
 
 //might need to make observable
 public class Client {
@@ -23,6 +25,7 @@ public class Client {
     private Map<UUID, Long> connectedPeers;
     private MulticastSocket multicastSocket;
     private NetworkInterface networkInterface;
+    private static final Logger logger = LoggerConfig.getLogger();
 
 
     public Client(P2PChatApp app){
@@ -85,7 +88,8 @@ public class Client {
 
 
     public void sendMessage(Message message) {
-        System.out.println("Sending " + message);
+        //System.out.println("Sending " + message);
+    logger.info("Sending " + message);
         try {
             // Serialize the Message object
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -132,7 +136,8 @@ public class Client {
     }
     private void processMessage(Message message) {
         if(!message.getSenderId().equals(uuid)){
-            System.out.println("Processing " + message);
+            //System.out.println("Processing " + message);
+            logger.info("Processing " + message);
             message.onMessage(this);
         }
         /*
@@ -156,7 +161,8 @@ public class Client {
 
     public void updatePeerList(UUID peerId) {
         connectedPeers.put(peerId, System.currentTimeMillis());
-        System.out.println("Peer discovered/updated: " + peerId);
+        //System.out.println("Peer discovered/updated: " + peerId);
+        logger.info("Peer discovered/updated: " + peerId);
     }
     private void removeInactivePeers() {
         while (!Thread.currentThread().isInterrupted()) {

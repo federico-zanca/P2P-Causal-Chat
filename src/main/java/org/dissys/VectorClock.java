@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class VectorClock {
-    private final Map<String, Integer> clock;
+    private Map<String, Integer> clock;
 
     /** Constructor initializes the vector clock for a set of participants
      *
@@ -60,6 +60,19 @@ public class VectorClock {
             Integer localTimestamp = clock.get(userId);
             if (localTimestamp == null || remoteTimestamp >= localTimestamp) {
                 clock.put(userId, remoteTimestamp);
+            }
+        }
+    }
+
+    // probably a better implementation of updateClock
+    public synchronized void updateFromMessage(String senderId, Map<String, Integer> messageClock) {
+        // Update the sender's timestamp
+        clock.merge(senderId, messageClock.get(senderId), Integer::max);
+
+        // Update other timestamps if they're ahead in the message clock
+        for (Map.Entry<String, Integer> entry : messageClock.entrySet()) {
+            if (!entry.getKey().equals(senderId)) {
+                clock.merge(entry.getKey(), entry.getValue(), Integer::max);
             }
         }
     }

@@ -1,7 +1,11 @@
 package org.dissys.Commands;
 
 import org.dissys.P2PChatApp;
+import org.dissys.utils.LoggerConfig;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -170,13 +174,55 @@ public enum ChatCommand implements Command {
         public String getDescription() {
             return "Exit the application";
         }
+    },
+
+    VIEW_LOG {
+        @Override
+        public void execute(P2PChatApp chat, String[] args) {
+            int linesToShow = 10; // Default number of lines to show
+            if (args.length > 0) {
+                try {
+                    linesToShow = Integer.parseInt(args[0]);
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid number of lines. Using default (10).");
+                }
+            }
+
+            try (BufferedReader reader = new BufferedReader(new FileReader(LoggerConfig.getLogFilePath()))) {
+                String line;
+                java.util.List<String> lastLines = new java.util.ArrayList<>();
+                while ((line = reader.readLine()) != null) {
+                    lastLines.add(line);
+                    if (lastLines.size() > linesToShow) {
+                        lastLines.remove(0);
+                    }
+                }
+                System.out.println("Last " + linesToShow + " log entries:");
+                for (String logLine : lastLines) {
+                    System.out.println(logLine);
+                }
+            } catch (IOException e) {
+                System.out.println("Error reading log file: " + e.getMessage());
+            }
+
+        }
+
+        @Override
+        public String getUsage() {
+            return "view_log [number_of_lines]";
+        }
+
+        @Override
+        public String getDescription() {
+            return "View the last N lines of the log file (default 10)";
+        }
+
+
     };
-
-
-    /**
-     * executes the command sent by calling the functions in chat
-     * @param chat
-     * @param args
-     */
+        /**
+         * executes the command sent by calling the functions in chat
+         * @param chat
+         * @param args
+         */
     public abstract void execute(P2PChatApp chat, String[] args);
 }

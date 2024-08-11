@@ -1,5 +1,6 @@
 package org.dissys.network;
 import org.dissys.P2PChatApp;
+import org.dissys.Room;
 import org.dissys.messages.ChatMessage;
 import org.dissys.messages.DiscoveryMsg;
 import org.dissys.messages.HeartbeatMsg;
@@ -27,13 +28,14 @@ public class Client {
     private MulticastSocket multicastSocket;
     private NetworkInterface networkInterface;
     private static final Logger logger = LoggerConfig.getLogger();
-
+    private Map<String, Room> rooms;
 
     public Client(P2PChatApp app){
         this.app = app;
         uuid = UUID.randomUUID();
         this.usernameRegistry = new ConcurrentHashMap<>();
         this.connectedPeers = new ConcurrentHashMap<>();
+        this.rooms = new ConcurrentHashMap<>();
         try {
             group = InetAddress.getByName(MULTICAST_ADDRESS);
             connectToGroup(group, PORT);
@@ -42,6 +44,8 @@ public class Client {
         }
     }
     public void start(){
+        username = askForUsername();
+
         // Start listening for peer messages
         new Thread(this::receiveMessages).start();
 
@@ -53,6 +57,42 @@ public class Client {
 
         // Send initial discovery message
         sendDiscoveryMessage();
+    }
+
+    private String askForUsername() {
+        Scanner scanner = new Scanner(System.in);
+        String username = "";
+
+        while (true) {
+            System.out.print("Please enter your username: ");
+            username = scanner.nextLine();
+
+            // Check if username is not empty and only contains alphanumeric characters
+            if (isValidUsername(username)) {
+                break;
+            } else {
+                System.out.println("Invalid username. It should be non-empty and only contain letters and numbers.");
+            }
+        }
+
+        // Parse and print the username in a decent format
+        username = parseUsername(username);
+
+        return username;
+    }
+
+    // Method to validate the username
+    private static boolean isValidUsername(String username) {
+        return username != null && !username.trim().isEmpty() && username.matches("^[a-zA-Z0-9]+$");
+    }
+
+    // Method to parse the username (e.g., capitalize the first letter)
+    private static String parseUsername(String username) {
+        if (username.length() > 1) {
+            return username.substring(0, 1).toUpperCase() + username.substring(1).toLowerCase();
+        } else {
+            return username.toUpperCase();
+        }
     }
 
     private void connectToGroup(InetAddress groupAddress, int port) throws IOException {
@@ -201,9 +241,18 @@ public class Client {
     }
 
     public void processChatMessage(String roomId, ChatMessage message) {
+        Room room;
         // Process the received chat message (e.g., update UI, maintain causal order)
         logger.info("Received message in room " + roomId + ": " + message.getContent());
-        // TODO implement causal ordering logic here
+
+        room = rooms.get(roomId);
+        if (room == null) {
+            logger.info("Discarding message, room not found: " + roomId);
+            return;
+        }
+
+        room.receiveMessage(message);
+
     }
 
     //on start get peers list from memory, if empty perform peer discovery

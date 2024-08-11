@@ -42,6 +42,18 @@ public class Client {
         } catch (IOException e) {
             throw new RuntimeException("unable to connect to group");
         }
+
+
+
+
+        // dummy room for testing
+        Set<String> dummyparts = new HashSet<>();
+        dummyparts.add("dummy");
+        dummyparts.add("dummier");
+
+        Room dummy = new Room("dummy", UUID.randomUUID(), dummyparts);
+        rooms.put(dummy.getRoomId(), dummy);
+
     }
     public void start(){
         username = askForUsername();
@@ -254,6 +266,10 @@ public class Client {
         room.receiveMessage(message);
 
     }
+    public Set<String> getRoomNames() {
+        return rooms.keySet();
+    }
+
 
     //on start get peers list from memory, if empty perform peer discovery
     /*

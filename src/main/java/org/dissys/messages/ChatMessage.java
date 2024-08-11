@@ -9,12 +9,14 @@ public class ChatMessage extends Message {
     private final String roomId;
     private final String content;
     private final VectorClock vectorClock;
+    private String sender;
 
-    public ChatMessage(UUID senderId, String roomId, String content, VectorClock vectorClock) {
+    public ChatMessage(UUID senderId, String sender, String roomId, String content, VectorClock vectorClock) {
         super(senderId);
         this.roomId = roomId;
         this.content = content;
         this.vectorClock = vectorClock;
+        this.sender = sender;
     }
 
     public String getRoomId() {
@@ -27,6 +29,10 @@ public class ChatMessage extends Message {
 
     public VectorClock getVectorClock() {
         return vectorClock;
+    }
+
+    public String getSender() {
+        return sender;
     }
 
     @Override

@@ -1,13 +1,13 @@
 package org.dissys.Commands;
 
 import org.dissys.P2PChatApp;
+import org.dissys.Room;
 import org.dissys.utils.LoggerConfig;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public enum ChatCommand implements Command {
     /*CREATE {
@@ -173,6 +173,31 @@ public enum ChatCommand implements Command {
         @Override
         public String getDescription() {
             return "Exit the application";
+        }
+    },
+
+    LIST {
+        @Override
+        public void execute(P2PChatApp chat, String[] args) {
+            Set<String> rooms = chat.getClient().getRoomNames();
+            if (rooms.isEmpty()) {
+                System.out.println("No rooms available.");
+            } else {
+                System.out.println("Available rooms:");
+                for (String room : rooms) {
+                    System.out.println("- " + room);
+                }
+            }
+        }
+
+        @Override
+        public String getUsage() {
+            return "list";
+        }
+
+        @Override
+        public String getDescription() {
+            return "List available rooms";
         }
     },
 

@@ -1,20 +1,21 @@
 package org.dissys;
 
-import org.dissys.messages.Message1;
+import org.dissys.messages.ChatMessage;
+
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Room {
     private final String roomId;
-    private final String localPeerId;  // basically my id
+    private final UUID localPeerId;    // basically my id
     private final Set<String> participants; // all participants in the room (including me)
     private final VectorClock localClock; // my vector clock
-    private final Queue<Message1> messageBuffer; // messages that have not been delivered
-    private final List<Message1> deliveredMessages; // messages that have been delivered
+    private final Queue<ChatMessage> messageBuffer; // messages that have not been delivered
+    private final List<ChatMessage> deliveredMessages; // messages that have been delivered
 
 
-    public Room(String roomId, String localPeerId, Set<String> participants) {
+    public Room(String roomId, UUID localPeerId, Set<String> participants) {
         this.roomId = roomId;
         this.localPeerId = localPeerId;
         this.participants = new HashSet<>(participants);
@@ -31,17 +32,17 @@ public class Room {
      * @param sender The user sending the message.
      * @return A new message with the updated vector clock.
      */
-    public Message1 createMessage(String content, User sender) {
-        localClock.incrementClock(localPeerId);
-        return new Message1(localPeerId, sender, this, content, new VectorClock(localClock) );
+    public ChatMessage createMessage(String content, String sender) {
+        localClock.incrementClock(sender);
+        return new ChatMessage(localPeerId, sender, roomId, content, new VectorClock(localClock) );
     }
 
-    /**
+                                /**
      * Receives a message, adds it to the message buffer, and processes the buffer to deliver any deliverable messages.
      *
      * @param message The received message.
      */
-    public void receiveMessage(Message1 message) {
+    public void receiveMessage(ChatMessage message) {
         messageBuffer.offer(message);
         processMessages();
     }
@@ -53,9 +54,9 @@ public class Room {
         boolean delivered;
         do {
             delivered = false;
-            Iterator<Message1> iterator = messageBuffer.iterator();
+            Iterator<ChatMessage> iterator = messageBuffer.iterator();
             while (iterator.hasNext()) {
-                Message1 message = iterator.next();
+                ChatMessage message = iterator.next();
                 if (canDeliver(message)) {
                     deliverMessage(message);
                     iterator.remove();
@@ -73,9 +74,9 @@ public class Room {
      * @param message The message to check for deliverability.
      * @return True if the message can be delivered, false otherwise.
      */
-    private boolean canDeliver(Message1 message) {
+    private boolean canDeliver(ChatMessage message) {
         VectorClock messageClock = message.getVectorClock();
-        String sender = message.getSender().getUserId();
+        String sender = message.getSender();
 
         // Check if this is the next message we're expecting from the sender
         if (messageClock.getClock().get(sender) != localClock.getClock().get(sender) + 1) {
@@ -98,15 +99,15 @@ public class Room {
      *
      * @param message The message to deliver.
      */
-    private void deliverMessage(Message1 message) {
+    private void deliverMessage(ChatMessage message) {
         deliveredMessages.add(message);
-        localClock.updateClock(message.getVectorClock().getClock(), message.getSender().getUserId());
+        localClock.updateClock(message.getVectorClock().getClock(), message.getSender());
         // Notify listeners or update UI
         System.out.println("Delivered message in room " + roomId + ": " + message.getContent() + " from " + message.getSender());
     }
 
 
-    public List<Message1> getDeliveredMessages() {
+    public List<ChatMessage> getDeliveredMessages() {
         return new ArrayList<>(deliveredMessages);
     }
 
@@ -122,7 +123,7 @@ public class Room {
         return new VectorClock(localClock);
     }
 
-    public List<Message1> getBufferedMessages() {
+    public List<ChatMessage> getBufferedMessages() {
         return new ArrayList<>(messageBuffer);
     }
 

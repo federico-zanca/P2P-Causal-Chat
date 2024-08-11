@@ -16,7 +16,7 @@ public class CLI {
     }
 
     public void start() {
-        logger.info("CLI started");
+        System.out.println("CLI started");
         System.out.println("Welcome to P2P Chat!");
         while (true) {
             System.out.print("> ");

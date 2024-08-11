@@ -1,9 +1,5 @@
 package org.dissys.messages;
 
-import org.dissys.Room;
-import org.dissys.UglyRoom;
-import org.dissys.User;
-import org.dissys.VectorClock;
 import org.dissys.network.Client;
 
 import java.io.Serializable;

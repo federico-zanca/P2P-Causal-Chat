@@ -3,6 +3,7 @@ package org.dissys;
 import org.dissys.network.Client;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -88,4 +89,7 @@ public class P2PChatApp {
         this.cli = cli;
     }
 
+    public Client getClient() {
+        return client;
+    }
 }

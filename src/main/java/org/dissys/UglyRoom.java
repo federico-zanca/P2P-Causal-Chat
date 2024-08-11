@@ -2,11 +2,10 @@ package org.dissys;
 
 
 
-import org.dissys.messages.Message1;
-
 import java.util.*;
 
 public class UglyRoom {
+    /*
     private final String roomName;
 
     private List<User> participants;
@@ -52,8 +51,9 @@ public class UglyRoom {
         Message message = new Message(user.getUserId(), content, new VectorClock(userClock));
         processMessage(message);
     }
-    */
+    /*
     public synchronized void postMessage(Message1 message) {
+
         processMessage(message);
     }
 
@@ -61,6 +61,7 @@ public class UglyRoom {
      * Checks if the message can be delivered immediately using the canDeliver method. If not, the message is buffered.
      * @param message
      */
+    /*
     private synchronized void processMessage(Message1 message) {
         if (canDeliver(message)) {
             deliverMessage(message);
@@ -75,6 +76,7 @@ public class UglyRoom {
      * @param message
      * @return
      */
+    /*
     private boolean canDeliver(Message1 message) {
         VectorClock messageClock = message.getVectorClock();
         String senderId = message.getSender().getUserId();
@@ -99,6 +101,7 @@ public class UglyRoom {
          Adds the message to the chat log, updates the sender's vector clock, and prints the message.
     * @param message
     */
+    /*
     private synchronized void deliverMessage(Message1 message) {
         roomChat.add(message);
         VectorClock senderClock = participantsClocks.get(message.getSender());
@@ -135,7 +138,7 @@ public class UglyRoom {
         checkMessages();
     }
     */
-
+/*
     public void addToBuffer(Message1 msg){
         synchronized (bufferedMessages) {
             bufferedMessages.add(msg);

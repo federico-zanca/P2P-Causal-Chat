@@ -1,6 +1,7 @@
 package org.dissys.network;
 import org.dissys.P2PChatApp;
 import org.dissys.Room;
+import org.dissys.VectorClock;
 import org.dissys.messages.ChatMessage;
 import org.dissys.messages.DiscoveryMsg;
 import org.dissys.messages.HeartbeatMsg;
@@ -277,6 +278,24 @@ public class Client {
             return;
         }
         room.viewRoomChat();
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void sendMessageInChat(String room, String content) {
+        Room chatRoom = rooms.get(room);
+        if (chatRoom == null) {
+            System.out.println("Room not found: " + room);
+            return;
+        }
+
+        VectorClock clock = chatRoom.getLocalClock();
+        ChatMessage message = new ChatMessage(uuid, username, room, content, clock);
+
+        sendMessage(message);
+
     }
 
 

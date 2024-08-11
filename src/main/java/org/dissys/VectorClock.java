@@ -1,10 +1,11 @@
 package org.dissys;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class VectorClock {
+public class VectorClock implements Serializable {
     private Map<String, Integer> clock;
 
     /** Constructor initializes the vector clock for a set of participants
@@ -20,12 +21,15 @@ public class VectorClock {
         this.clock = new HashMap<>(clock.getClock());
     }
 
+    /*
     public VectorClock(int size){
         this.clock = new HashMap<>();
         for (int i = 0; i < size; i++) {
             this.clock.put(String.valueOf(i), 0);
         }
     }
+
+     */
 
     /** Initialize the clock for all participants with a starting value of 0
      *

@@ -2,6 +2,8 @@ package org.dissys.Commands;
 
 import org.dissys.P2PChatApp;
 import org.dissys.Room;
+import org.dissys.messages.ChatMessage;
+import org.dissys.network.Client;
 import org.dissys.utils.LoggerConfig;
 
 import java.io.BufferedReader;
@@ -221,6 +223,34 @@ public enum ChatCommand implements Command {
         @Override
         public String getDescription() {
             return "Open and view a chat room";
+        }
+    },
+
+    SEND {
+        @Override
+        public void execute(P2PChatApp chat, String[] args) {
+            if (args.length < 2) {
+                System.out.println(getUsage());
+                return;
+            }
+            try {
+                Client client = chat.getClient();
+                client.sendMessageInChat(args[0], String.join(" ", Arrays.copyOfRange(args, 1, args.length)));
+
+                System.out.println("Message sent to " + args[0]);
+            } catch (Exception e) {
+                System.out.println("Failed to send message: " + e.getMessage());
+            }
+        }
+
+        @Override
+        public String getUsage() {
+            return "send <room_name> <message>";
+        }
+
+        @Override
+        public String getDescription() {
+            return "Send a message to a room";
         }
     },
 

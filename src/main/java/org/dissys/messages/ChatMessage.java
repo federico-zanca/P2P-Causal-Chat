@@ -6,12 +6,12 @@ import org.dissys.network.Client;
 import java.util.UUID;
 
 public class ChatMessage extends Message {
-    private final String roomId;
+    private final UUID roomId;
     private final String content;
     private final VectorClock vectorClock;
     private String sender;
 
-    public ChatMessage(UUID senderId, String sender, String roomId, String content, VectorClock vectorClock) {
+    public ChatMessage(UUID senderId, String sender, UUID roomId, String content, VectorClock vectorClock) {
         super(senderId);
         this.roomId = roomId;
         this.content = content;
@@ -19,7 +19,7 @@ public class ChatMessage extends Message {
         this.sender = sender;
     }
 
-    public String getRoomId() {
+    public UUID getRoomId() {
         return roomId;
     }
 

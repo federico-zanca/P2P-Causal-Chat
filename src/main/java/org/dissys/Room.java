@@ -7,7 +7,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Room {
-    private final String roomId;
+    private final UUID roomId;
+    private final String roomName;
     private final UUID localPeerId;    // basically my id
     private final Set<String> participants; // all participants in the room (including me)
     private final VectorClock localClock; // my vector clock
@@ -15,8 +16,9 @@ public class Room {
     private final List<ChatMessage> deliveredMessages; // messages that have been delivered
 
 
-    public Room(String roomId, UUID localPeerId, Set<String> participants) {
+    public Room(UUID roomId, String roomName, UUID localPeerId, Set<String> participants) {
         this.roomId = roomId;
+        this.roomName = roomName;
         this.localPeerId = localPeerId;
         this.participants = new HashSet<>(participants);
         this.localClock = new VectorClock(participants);
@@ -103,7 +105,7 @@ public class Room {
         deliveredMessages.add(message);
         localClock.updateClock(message.getVectorClock().getClock(), message.getSender());
         // Notify listeners or update UI
-        System.out.println("Delivered message in room " + roomId + ": " + message.getContent() + " from " + message.getSender());
+        System.out.println("Delivered message in room " + roomName + ": " + message.getContent() + " from " + message.getSender());
     }
 
 
@@ -111,8 +113,8 @@ public class Room {
         return new ArrayList<>(deliveredMessages);
     }
 
-    public String getRoomId() {
-        return roomId;
+    public String getRoomName() {
+        return roomName;
     }
 
     public Set<String> getParticipants() {
@@ -132,9 +134,13 @@ public class Room {
     }
 
     public void viewRoomChat() {
-        System.out.println("Room " + roomId + " chat:");
+        System.out.println("Room " + roomName + " chat:");
         for (ChatMessage message : deliveredMessages) {
             System.out.println(message.getSender() + ": " + message.getContent());
         }
+    }
+
+    public UUID getRoomId() {
+        return roomId;
     }
 }

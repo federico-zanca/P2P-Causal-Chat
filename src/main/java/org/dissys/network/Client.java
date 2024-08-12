@@ -2,10 +2,7 @@ package org.dissys.network;
 import org.dissys.P2PChatApp;
 import org.dissys.Room;
 import org.dissys.VectorClock;
-import org.dissys.messages.ChatMessage;
-import org.dissys.messages.DiscoveryMsg;
-import org.dissys.messages.HeartbeatMsg;
-import org.dissys.messages.Message;
+import org.dissys.messages.*;
 import org.dissys.utils.LoggerConfig;
 
 import java.io.*;
@@ -13,6 +10,7 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 //might need to make observable
 public class Client {
@@ -29,7 +27,7 @@ public class Client {
     private MulticastSocket multicastSocket;
     private NetworkInterface networkInterface;
     private static final Logger logger = LoggerConfig.getLogger();
-    private Map<String, Room> rooms;
+    private Map<UUID, Room> rooms;
 
     public Client(P2PChatApp app){
         this.app = app;
@@ -52,7 +50,7 @@ public class Client {
         dummyparts.add("dummy");
         dummyparts.add("dummier");
 
-        Room dummy = new Room("dummy", UUID.randomUUID(), dummyparts);
+        Room dummy = new Room(UUID.randomUUID(), "dummy", UUID.randomUUID(), dummyparts);
         rooms.put(dummy.getRoomId(), dummy);
 
     }
@@ -253,7 +251,7 @@ public class Client {
         return uuid;
     }
 
-    public void processChatMessage(String roomId, ChatMessage message) {
+    public void processChatMessage(UUID roomId, ChatMessage message) {
         Room room;
         // Process the received chat message (e.g., update UI, maintain causal order)
         logger.info("Received message in room " + roomId + ": " + message.getContent());
@@ -267,35 +265,59 @@ public class Client {
         room.receiveMessage(message);
 
     }
-    public Set<String> getRoomNames() {
+    public Set<UUID> getRoomsIds() {
         return rooms.keySet();
     }
 
+    public Set<String> getRoomsNames() {
+        return rooms.keySet().stream().map(UUID::toString).collect(Collectors.toSet());
+    }
+
     public void openRoom(String roomName) {
-        Room room = rooms.get(roomName);
-        if (room == null) {
-            System.out.println("Room not found: " + roomName);
-            return;
+        Room room;
+        // find room with name roomName in the HashTable<UUID, Room> rooms
+        //iterate over the rooms and check if the roomName is equal to the roomName of the room using getRoomName()
+        //if it is equal, assign the room to the room variable
+        for (Room r : rooms.values()) {
+            if (r.getRoomName().equals(roomName)) {
+                room = r;
+                room.viewRoomChat();
+                return;
+            }
         }
-        room.viewRoomChat();
+        //if the room is not found, print "Room not found: " + roomName
+        System.out.println("Room not found: " + roomName);
     }
 
     public String getUsername() {
         return username;
     }
 
-    public void sendMessageInChat(String room, String content) {
-        Room chatRoom = rooms.get(room);
-        if (chatRoom == null) {
-            System.out.println("Room not found: " + room);
+    public void sendMessageInChat(String roomName, String content) {
+        Room room = null;
+        for(Room r: rooms.values()){
+            if(r.getRoomName().equals(roomName)){
+                room = r;
+                break;
+            }
+        }
+        //if the room is not found, print "Room not found: " + roomName
+        if (room == null) {
+            System.out.println("Room not found: " + roomName);
             return;
         }
 
-        VectorClock clock = chatRoom.getLocalClock();
-        ChatMessage message = new ChatMessage(uuid, username, room, content, clock);
+        VectorClock clock = room.getLocalClock();
+        ChatMessage message = new ChatMessage(uuid, username, room.getRoomId(), content, clock);
 
         sendMessage(message);
 
+    }
+
+
+
+    public void processRoomCreationMessage(RoomCreationMessage roomCreationMessage) {
+        //TODO implement
     }
 
 

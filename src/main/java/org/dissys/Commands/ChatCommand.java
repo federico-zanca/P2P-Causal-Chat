@@ -1,8 +1,6 @@
 package org.dissys.Commands;
 
 import org.dissys.P2PChatApp;
-import org.dissys.Room;
-import org.dissys.messages.ChatMessage;
 import org.dissys.network.Client;
 import org.dissys.utils.LoggerConfig;
 
@@ -181,7 +179,7 @@ public enum ChatCommand implements Command {
     LIST {
         @Override
         public void execute(P2PChatApp chat, String[] args) {
-            Set<String> rooms = chat.getClient().getRoomNames();
+            Set<String> rooms = chat.getClient().getRoomsNames();
             if (rooms.isEmpty()) {
                 System.out.println("No rooms available.");
             } else {

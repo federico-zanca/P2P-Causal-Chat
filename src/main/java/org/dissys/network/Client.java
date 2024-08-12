@@ -44,7 +44,7 @@ public class Client {
 
 
 
-
+        /*
         // dummy room for testing
         Set<String> dummyparts = new HashSet<>();
         dummyparts.add("dummy");
@@ -52,7 +52,7 @@ public class Client {
 
         Room dummy = new Room(UUID.randomUUID(), "dummy", UUID.randomUUID(), dummyparts);
         rooms.put(dummy.getRoomId(), dummy);
-
+        */
     }
     public void start(){
         username = askForUsername();
@@ -314,10 +314,21 @@ public class Client {
 
     }
 
+    public void processRoomCreationMessage(RoomCreationMessage message) {
+        if(!message.getParticipants().contains(username)){
+            logger.info("Room creation message not for me: " + message);
+            return;
+        }
+        UUID roomId = message.getRoomId();
+        if(rooms.containsKey(roomId)){
+            logger.info("Room already exists: " + roomId);
+            return;
+        }
+        Room room = new Room(roomId, message.getRoomName(), uuid, message.getParticipants());
+        rooms.put(roomId, room);
+        logger.info("Added new room: " + room.getRoomName() + " with id " + roomId);
 
-
-    public void processRoomCreationMessage(RoomCreationMessage roomCreationMessage) {
-        //TODO implement
+        //TODO acknowledge participants that you are in the room to track who knows about the room
     }
 
 

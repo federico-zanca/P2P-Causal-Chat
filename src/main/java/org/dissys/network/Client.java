@@ -308,12 +308,19 @@ public class Client {
             return;
         }
 
+
+        room.sendMessage(this, username, content);
+
+        /*
         VectorClock clock = room.getLocalClock();
         clock.incrementClock(username); //ATTENZIONE!! Se l'invio del messaggio non va a buon fine il clock rimarrà incrementato e sarebbe un bordello
         ChatMessage message = new ChatMessage(uuid, username, room.getRoomId(), content, clock);
 
+
         sendMessage(message);
 
+
+         */
     }
 
     private void sendRoomCreationMessage(Room room) {

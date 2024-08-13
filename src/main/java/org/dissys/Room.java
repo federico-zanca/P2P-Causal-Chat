@@ -1,6 +1,7 @@
 package org.dissys;
 
 import org.dissys.messages.ChatMessage;
+import org.dissys.network.Client;
 
 
 import java.util.*;
@@ -64,8 +65,8 @@ public class Room {
         for (ChatMessage bufferedMessage : messageBuffer) {
             System.out.println(bufferedMessage);
         }
+        */
 
-         */
     }
 
     /**
@@ -127,6 +128,13 @@ public class Room {
         System.out.println("Delivered message in room " + roomName + ": " + message.getContent() + " from " + message.getSender());
     }
 
+    public void sendMessage(Client client, String sender, String content){
+        VectorClock messageClock = new VectorClock(localClock);
+        messageClock.incrementClock(sender);
+        ChatMessage message = new ChatMessage(localPeerId, sender, roomId, content, messageClock);
+        client.sendMessage(message);
+        receiveMessage(message);
+    }
 
     public List<ChatMessage> getDeliveredMessages() {
         return new ArrayList<>(deliveredMessages);
@@ -141,7 +149,7 @@ public class Room {
     }
 
     public VectorClock getLocalClock() {
-        return new VectorClock(localClock);
+        return  localClock;
     }
 
     public List<ChatMessage> getBufferedMessages() {

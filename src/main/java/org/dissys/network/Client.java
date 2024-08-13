@@ -70,7 +70,7 @@ public class Client {
         sendDiscoveryMessage();
     }
 
-    private String askForUsername() {
+    private String askForUsername() { //TODO check if username is already taken
         Scanner scanner = new Scanner(System.in);
         String username = "";
 
@@ -86,24 +86,12 @@ public class Client {
             }
         }
 
-        // Parse and print the username in a decent format
-        username = parseUsername(username);
-
         return username;
     }
 
     // Method to validate the username
     private static boolean isValidUsername(String username) {
         return username != null && !username.trim().isEmpty() && username.matches("^[a-zA-Z0-9]+$");
-    }
-
-    // Method to parse the username (e.g., capitalize the first letter)
-    private static String parseUsername(String username) {
-        if (username.length() > 1) {
-            return username.substring(0, 1).toUpperCase() + username.substring(1).toLowerCase();
-        } else {
-            return username.toUpperCase();
-        }
     }
 
     private void connectToGroup(InetAddress groupAddress, int port) throws IOException {
@@ -141,7 +129,11 @@ public class Client {
 
     public void sendMessage(Message message) {
         //System.out.println("Sending " + message);
-    logger.info("Sending " + message);
+        if(!(message instanceof HeartbeatMsg)){
+            System.out.println("Sending " + message);
+        } else {
+            //logger.info("Sending " + message);
+        }
         try {
             // Serialize the Message object
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -188,8 +180,11 @@ public class Client {
     }
     private void processMessage(Message message) {
         if(!message.getSenderId().equals(uuid)){
+            if( !(message instanceof HeartbeatMsg)){
+                System.out.println("Processing " + message);
+            }
             //System.out.println("Processing " + message);
-            logger.info("Processing " + message);
+            //logger.info("Processing " + message);
             message.onMessage(this);
         }
         /*
@@ -258,7 +253,8 @@ public class Client {
 
         room = rooms.get(roomId);
         if (room == null) {
-            logger.info("Discarding message, room not found: " + roomId);
+            //logger.info("Discarding message, room not found: " + roomId);
+            System.out.println("Discarding message, room not found: " + roomId);
             return;
         }
 
@@ -314,19 +310,43 @@ public class Client {
 
     }
 
+    private void sendRoomCreationMessage(Room room) {
+        RoomCreationMessage message = new RoomCreationMessage(uuid, username, room.getRoomId(), room.getRoomName(), room.getParticipants());
+        sendMessage(message);
+    }
+
+    public void createRoom(String roomName, Set<String> participants) {
+        System.out.println("Now in client.createRoom - Creating room: " + roomName);
+        UUID roomId = UUID.randomUUID();
+        participants.add(username);
+        Room room = new Room(roomId, roomName, uuid, participants);
+        rooms.put(roomId, room);
+        sendRoomCreationMessage(room);
+    }
+
     public void processRoomCreationMessage(RoomCreationMessage message) {
         if(!message.getParticipants().contains(username)){
-            logger.info("Room creation message not for me: " + message);
+            /*
+            System.out.println("My username: " + username);
+            System.out.println("Participants:");
+
+            for (String participant : message.getParticipants()) {
+
+                System.out.println(participant + "->" +(participant.equals(username)));
+            }
+            */
+            //logger.info("Room creation message not for me: " + message);
+            System.out.println("Room creation message not for me: " + message);
             return;
         }
         UUID roomId = message.getRoomId();
         if(rooms.containsKey(roomId)){
-            logger.info("Room already exists: " + roomId);
+            System.out.println("Room already exists: " + roomId);
             return;
         }
         Room room = new Room(roomId, message.getRoomName(), uuid, message.getParticipants());
         rooms.put(roomId, room);
-        logger.info("Added new room: " + room.getRoomName() + " with id " + roomId);
+        System.out.println("Added new room: " + room.getRoomName() + " with id " + roomId);
 
         //TODO acknowledge participants that you are in the room to track who knows about the room
     }

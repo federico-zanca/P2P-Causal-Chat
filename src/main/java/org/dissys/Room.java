@@ -47,6 +47,22 @@ public class Room {
     public void receiveMessage(ChatMessage message) {
         messageBuffer.offer(message);
         processMessages();
+        //wait for 2 sec and then print delivered messages and buffered messages
+
+        //This will all be removed later
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("Delivered messages in room " + roomName + ":");
+        for (ChatMessage deliveredMessage : deliveredMessages) {
+            System.out.println(deliveredMessage.getSender() + ": " + deliveredMessage.getContent());
+        }
+        System.out.println("Buffered messages in room " + roomName + ":");
+        for (ChatMessage bufferedMessage : messageBuffer) {
+            System.out.println(bufferedMessage.getSender() + ": " + bufferedMessage.getContent());
+        }
     }
 
     /**

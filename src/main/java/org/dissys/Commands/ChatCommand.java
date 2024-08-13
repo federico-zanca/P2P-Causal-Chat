@@ -252,6 +252,31 @@ public enum ChatCommand implements Command {
         }
     },
 
+    CREATE {
+        @Override
+        public void execute(P2PChatApp chat, String[] args) {
+            if (args.length < 2) {
+                System.out.println(getUsage());
+                return;
+            }
+            String roomName = args[0];
+            System.out.println("Creating room: " + roomName);
+            // move the rest of the args to a set
+            Set<String> participants = new HashSet<>(Arrays.asList(Arrays.copyOfRange(args, 1, args.length)));
+            chat.getClient().createRoom(roomName, participants);
+        }
+
+        @Override
+        public String getUsage() {
+            return "create <room_name> <participant1> <participant2> ...";
+        }
+
+        @Override
+        public String getDescription() {
+            return "Create a new chat room";
+        }
+    },
+
     VIEW_LOG {
         @Override
         public void execute(P2PChatApp chat, String[] args) {

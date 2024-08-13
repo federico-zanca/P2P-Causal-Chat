@@ -1,6 +1,7 @@
 package org.dissys.Commands;
 
 import org.dissys.P2PChatApp;
+import org.dissys.Room;
 import org.dissys.network.Client;
 import org.dissys.utils.LoggerConfig;
 
@@ -179,7 +180,8 @@ public enum ChatCommand implements Command {
     LIST {
         @Override
         public void execute(P2PChatApp chat, String[] args) {
-            Set<String> rooms = chat.getClient().getRoomsNames();
+            //Set<String> rooms = chat.getClient().getRoomsNames();
+            Set<String> rooms = chat.getClient().getRoomsIdsAndNames();
             if (rooms.isEmpty()) {
                 System.out.println("No rooms available.");
             } else {
@@ -274,6 +276,33 @@ public enum ChatCommand implements Command {
         @Override
         public String getDescription() {
             return "Create a new chat room";
+        }
+    },
+    CLOCK {
+        @Override
+        public void execute(P2PChatApp chat, String[] args) {
+            Client client = chat.getClient();
+            if(args.length != 1){
+                System.out.println(getUsage());
+                return;
+            }
+            String roomName = args[0];
+            Room room = client.getRoomByName(roomName);
+            if (room != null){
+                System.out.println(room.getLocalClock());
+            } else {
+                System.out.println("Room not found :(");
+            }
+        }
+
+        @Override
+        public String getUsage() {
+            return "clock <room>";
+        }
+
+        @Override
+        public String getDescription() {
+            return "View your VectorClock for a given room";
         }
     },
 

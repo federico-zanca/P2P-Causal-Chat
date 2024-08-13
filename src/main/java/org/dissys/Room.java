@@ -49,7 +49,8 @@ public class Room {
         processMessages();
         //wait for 2 sec and then print delivered messages and buffered messages
 
-        //This will all be removed later
+        //This will all be removed later, for debugging
+        /*
         try {
             Thread.sleep(2000);
         } catch (InterruptedException e) {
@@ -61,8 +62,10 @@ public class Room {
         }
         System.out.println("Buffered messages in room " + roomName + ":");
         for (ChatMessage bufferedMessage : messageBuffer) {
-            System.out.println(bufferedMessage.getSender() + ": " + bufferedMessage.getContent());
+            System.out.println(bufferedMessage);
         }
+
+         */
     }
 
     /**

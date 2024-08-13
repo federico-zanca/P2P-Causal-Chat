@@ -43,10 +43,10 @@ public class VectorClock implements Serializable {
 
     /** Increment the clock value for the specified user by 1
      *
-     * @param userId
+     * @param username
      */
-    public void incrementClock(String userId) {
-        clock.compute(userId, (k, currentTimestamp) -> currentTimestamp != null ? currentTimestamp + 1 : 0);
+    public void incrementClock(String username) {
+        clock.compute(username, (k, currentTimestamp) -> currentTimestamp != null ? currentTimestamp + 1 : 0);
     }
 
     /** Return the current state of the vector clock **/
@@ -93,5 +93,14 @@ public class VectorClock implements Serializable {
             }
         }
         return true;
+    }
+
+    @Override
+    public String toString(){
+        String ret="\n";
+        for (String usr : clock.keySet()){
+            ret += usr +" -> " + clock.get(usr).toString() + "\n";
+        }
+        return ret;
     }
 }

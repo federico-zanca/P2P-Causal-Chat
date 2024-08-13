@@ -263,10 +263,15 @@ public class Client {
     }
     public Set<UUID> getRoomsIds() {
         return rooms.keySet();
+        //return rooms.keySet().stream().map(UUID::toString).collect(Collectors.toSet());
     }
 
     public Set<String> getRoomsNames() {
-        return rooms.keySet().stream().map(UUID::toString).collect(Collectors.toSet());
+        return rooms.values().stream().map(Room::getRoomName).collect(Collectors.toSet());
+    }
+
+    public Set<String> getRoomsIdsAndNames() {
+        return rooms.entrySet().stream().map(e -> e.getValue().getRoomName() + "  (" + e.getKey().toString() + ")").collect(Collectors.toSet());
     }
 
     public void openRoom(String roomName) {
@@ -304,6 +309,7 @@ public class Client {
         }
 
         VectorClock clock = room.getLocalClock();
+        clock.incrementClock(username); //ATTENZIONE!! Se l'invio del messaggio non va a buon fine il clock rimarrà incrementato e sarebbe un bordello
         ChatMessage message = new ChatMessage(uuid, username, room.getRoomId(), content, clock);
 
         sendMessage(message);
@@ -351,6 +357,16 @@ public class Client {
         //TODO acknowledge participants that you are in the room to track who knows about the room
     }
 
+    public Room getRoomByName(String name){
+        Room room = null;
+        for(Room r: rooms.values()){
+            if(r.getRoomName().equals(name)){
+                room = r;
+                break;
+            }
+        }
+        return room;
+    }
 
     //on start get peers list from memory, if empty perform peer discovery
     /*

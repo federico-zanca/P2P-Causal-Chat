@@ -128,7 +128,7 @@ public class Room {
         System.out.println("Delivered message in room " + roomName + ": " + message.getContent() + " from " + message.getSender());
     }
 
-    public void sendMessage(Client client, String sender, String content){
+    public void sendChatMessage(Client client, String sender, String content){
         VectorClock messageClock = new VectorClock(localClock);
         messageClock.incrementClock(sender);
         ChatMessage message = new ChatMessage(localPeerId, sender, roomId, content, messageClock);

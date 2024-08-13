@@ -237,7 +237,7 @@ public enum ChatCommand implements Command {
                 Client client = chat.getClient();
                 client.sendMessageInChat(args[0], String.join(" ", Arrays.copyOfRange(args, 1, args.length)));
 
-                System.out.println("Message sent to " + args[0]);
+
             } catch (Exception e) {
                 System.out.println("Failed to send message: " + e.getMessage());
             }

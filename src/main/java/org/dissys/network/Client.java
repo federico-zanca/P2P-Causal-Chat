@@ -68,6 +68,37 @@ public class Client {
 
         // Send initial discovery message
         sendDiscoveryMessage();
+
+        // Ask if reconnecting, may remove it later when persistence is added
+        askIfReconnecting();
+
+
+    }
+
+    private void askIfReconnecting() {
+        System.out.println("Are you reconnecting to the chat? (y/N)");
+        Scanner scanner = new Scanner(System.in);
+        String answer = scanner.nextLine();
+        if (answer.trim().equalsIgnoreCase("y")) {
+
+
+
+            // begin of fake part for simulation purposes
+            System.out.print("Metti l'id della room per cui stai simulando la riconnessione -> ");
+            String roomId = scanner.nextLine().trim();
+            UUID uuid = UUID.fromString(roomId);
+            Set<String> participants = new HashSet<>();
+            participants.add(username);
+            participants.add("amuro");
+            Room fakeroom = new Room(uuid, "pizza", uuid, participants);
+            rooms.put(uuid, fakeroom);
+            // end of fake part
+
+
+
+            ReconnectionRequestMessage message = new ReconnectionRequestMessage(uuid, username, new ArrayList<>(rooms.values()));
+            sendMessage(message);
+        }
     }
 
     private String askForUsername() { //TODO check if username is already taken
@@ -309,8 +340,8 @@ public class Client {
         }
 
 
-        room.sendMessage(this, username, content);
-
+        room.sendChatMessage(this, username, content);
+        System.out.println("Message sent to " + roomName);
         /*
         VectorClock clock = room.getLocalClock();
         clock.incrementClock(username); //ATTENZIONE!! Se l'invio del messaggio non va a buon fine il clock rimarrà incrementato e sarebbe un bordello
@@ -373,6 +404,65 @@ public class Client {
             }
         }
         return room;
+    }
+
+    public void processReconnectionRequestMessage(ReconnectionRequestMessage message) {
+        Map<UUID, VectorClock> requestedRooms = message.getRoomsClocks();
+        boolean needsUpdate = false;
+        List<Message> bundleOfMessagesOtherNeeds = null;
+        List<Room> roomsToUpdate = null;
+        VectorClock localRoomClock = null;
+
+        //TODO check if I am in a room in which the requester is but he doesn't know -> he lost RoomCreationMessage
+
+        for ( UUID reqRoomId : requestedRooms.keySet()){
+            System.out.println("Retrieving messages for room " + reqRoomId);
+            bundleOfMessagesOtherNeeds = new ArrayList<>();
+            roomsToUpdate = new ArrayList<>();
+
+            needsUpdate = false;
+            Room reqRoom = rooms.get(reqRoomId);
+
+            if(reqRoom == null) {
+                continue;
+            }
+
+            localRoomClock = reqRoom.getLocalClock();
+
+            for(ChatMessage deliveredMessage : reqRoom.getDeliveredMessages()) {
+                if (deliveredMessage.getVectorClock().isAheadOf(requestedRooms.get(reqRoomId))) {
+                    bundleOfMessagesOtherNeeds.add(deliveredMessage);
+                }
+                if (localRoomClock.isBehindOf(deliveredMessage.getVectorClock())) {
+                    // flags this room to be added to list of rooms that need to be updated (need to ask other peers to send missing messages)
+                    needsUpdate = true;
+                }
+            }
+
+            if(needsUpdate) {
+                roomsToUpdate.add(reqRoom);
+            }
+
+            // send missing messages to requesting peer
+            // TODO : do it after random amount of time and check if anyone else already sent it before sending
+            if(!bundleOfMessagesOtherNeeds.isEmpty()) {
+                ReconnectionReplyMessage replyMessage = new ReconnectionReplyMessage(uuid, username, bundleOfMessagesOtherNeeds);
+                sendMessage(replyMessage);
+            }
+
+            //TODO request update for rooms that need to be updated
+        }
+
+        // craft ReconnectionRequestMessage for rooms that need to be updated
+
+
+    }
+
+    public void processReconnectionReplyMessage(ReconnectionReplyMessage reconnectionReplyMessage) {
+        List<Message> messages = reconnectionReplyMessage.getLostMessages();
+        for(Message message : messages){
+            processMessage(message);
+        }
     }
 
     //on start get peers list from memory, if empty perform peer discovery

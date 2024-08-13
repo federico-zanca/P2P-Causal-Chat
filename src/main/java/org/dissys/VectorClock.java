@@ -95,6 +95,37 @@ public class VectorClock implements Serializable {
         return true;
     }
 
+    public VectorClock updateClock(VectorClock other){
+        VectorClock ret = new VectorClock(this.clock.keySet());
+        for (String usr : clock.keySet()){
+            ret.clock.put(usr, Math.max(this.clock.get(usr), other.clock.get(usr)));
+        }
+        return ret;
+    }
+
+    /*
+    returns true if this vector clock is ahead of the other vector clock in at least one entry
+     */
+    public boolean isAheadOf(VectorClock other){
+        for(String usr : clock.keySet()){
+            // for debugging
+            //System.out.println(usr + clock.get(usr) + " " + other.getClock().get(usr) + " " + (clock.get(usr) > other.getClock().get(usr)));
+            if(clock.get(usr) > other.getClock().get(usr)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean isBehindOf(VectorClock other){
+        for(String usr : clock.keySet()){
+            if(clock.get(usr) < other.getClock().get(usr)){
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public String toString(){
         String ret="\n";

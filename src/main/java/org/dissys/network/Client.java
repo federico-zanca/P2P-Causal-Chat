@@ -407,7 +407,7 @@ public class Client {
     }
 
     public void processReconnectionRequestMessage(ReconnectionRequestMessage message) {
-        Map<UUID, VectorClock> requestedRooms = message.getRoomsClocks();
+        Map<UUID, VectorClock> requestedRoomsByMessageClocks = message.getRoomsClocks();
         boolean needsUpdate = false;
         List<Message> bundleOfMessagesOtherNeeds = null;
         List<Room> roomsToUpdate = null;
@@ -415,7 +415,7 @@ public class Client {
 
         //TODO check if I am in a room in which the requester is but he doesn't know -> he lost RoomCreationMessage
 
-        for ( UUID reqRoomId : requestedRooms.keySet()){
+        for ( UUID reqRoomId : requestedRoomsByMessageClocks.keySet()){
             System.out.println("Retrieving messages for room " + reqRoomId);
             bundleOfMessagesOtherNeeds = new ArrayList<>();
             roomsToUpdate = new ArrayList<>();
@@ -430,10 +430,10 @@ public class Client {
             localRoomClock = reqRoom.getLocalClock();
 
             for(ChatMessage deliveredMessage : reqRoom.getDeliveredMessages()) {
-                if (deliveredMessage.getVectorClock().isAheadOf(requestedRooms.get(reqRoomId))) {
+                if (deliveredMessage.getVectorClock().isAheadOf(requestedRoomsByMessageClocks.get(reqRoomId))) {
                     bundleOfMessagesOtherNeeds.add(deliveredMessage);
                 }
-                if (localRoomClock.isBehindOf(deliveredMessage.getVectorClock())) {
+                if (localRoomClock.isBehindOf(requestedRoomsByMessageClocks.get(reqRoomId))) {
                     // flags this room to be added to list of rooms that need to be updated (need to ask other peers to send missing messages)
                     needsUpdate = true;
                 }
@@ -450,7 +450,11 @@ public class Client {
                 sendMessage(replyMessage);
             }
 
-            //TODO request update for rooms that need to be updated
+            //TODO not fully tested yet
+            if(!roomsToUpdate.isEmpty()) {
+                ReconnectionRequestMessage askForUpdateMessage = new ReconnectionRequestMessage(uuid, username, roomsToUpdate);
+                sendMessage(askForUpdateMessage);
+            }
         }
 
         // craft ReconnectionRequestMessage for rooms that need to be updated

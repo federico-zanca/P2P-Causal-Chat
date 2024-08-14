@@ -5,6 +5,8 @@ import java.util.Scanner;
 import java.util.logging.Logger;
 import org.dissys.utils.LoggerConfig;
 
+import static org.dissys.Protocols.UsernameProposal.isValidUsername;
+
 public class CLI {
     private final P2PChatApp app;
     private final Scanner scanner;
@@ -18,6 +20,11 @@ public class CLI {
     public void start() {
         System.out.println("CLI started");
         System.out.println("Welcome to P2P Chat!");
+
+        if(!app.isUsernameSet()){
+            askForUsername();
+        }
+
         while (true) {
             System.out.print("> ");
             String input = scanner.nextLine().trim();
@@ -37,23 +44,30 @@ public class CLI {
     }
 
 
-    /*public void askChooseUsername(){
-        boolean usernameIsChosen = false;
-        while (!usernameIsChosen){
+    private void askForUsername() {
+        String username = "";
 
-            System.out.println("Choose a username:");
-            System.out.print("> ");
-            String input = scanner.nextLine().trim();
-            String[] parts = input.split("\\s+", 2);
-            String username = parts[0];
+        while (true) {
+            System.out.print("Please enter your username: ");
+            username = scanner.nextLine();
 
-            usernameIsChosen = app.proposeUsername(username);
-            if(usernameIsChosen){
-                System.out.println("Welcome " + username + "!");
-            }else {
-                System.out.println("Username taken");
+            // Check if username is not empty and only contains alphanumeric characters
+            if (isValidUsername(username)) {
+                System.out.println("Checking if the username is already taken...");
+                if(app.proposeUsernameToPeers(username)){
+                    System.out.println("Welcome " + username + "!");
+                    break;
+                }else {
+                    System.out.println("Username taken, retry with a different username");
+                }
+            } else {
+                System.out.println("Invalid username. It should be non-empty and only contain letters and numbers.");
             }
         }
+    }
 
-    }*/
+
+    public void notifyRoomInvite(Room room) {
+        System.out.println("[!] You have been added to the room " + room.getRoomName());
+    }
 }

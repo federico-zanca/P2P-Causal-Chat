@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.dissys.Protocols.ReconnectionProtocol.processReconnectionRequestMessage;
+
 public class ReconnectionRequestMessage extends Message {
     private final Map<UUID, VectorClock> roomsClocks;
     private final String sender;
@@ -29,7 +31,7 @@ public class ReconnectionRequestMessage extends Message {
 
     @Override
     public void onMessage(Client client) {
-        client.processReconnectionRequestMessage(this);
+        processReconnectionRequestMessage(this, client.getApp());
     }
 
     @Override

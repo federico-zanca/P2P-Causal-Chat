@@ -11,32 +11,6 @@ import java.io.IOException;
 import java.util.*;
 
 public enum ChatCommand implements Command {
-    /*CREATE {
-        @Override
-        public void execute(P2PChatApp chat, String[] args) {
-            if (args.length < 1) {
-                System.out.println(getUsage());
-                return;
-            }
-            try {
-                //chat.createRoom(args[0]);
-                System.out.println("Room created: " + args[0]);
-            } catch (Exception e) {
-                System.out.println("Failed to create room: " + e.getMessage());
-            }
-        }
-
-        @Override
-        public String getUsage() {
-            return "create <room_name>";
-        }
-
-        @Override
-        public String getDescription() {
-            return "Create a new chat room";
-        }
-    },*/
-
     /*JOIN {
         @Override
         public void execute(P2PChatApp chat, String[] args) {
@@ -60,32 +34,6 @@ public enum ChatCommand implements Command {
         @Override
         public String getDescription() {
             return "Join an existing chat room";
-        }
-    },*/
-
-    /*SEND {
-        @Override
-        public void execute(P2PChatApp chat, String[] args) {
-            if (args.length < 2) {
-                System.out.println(getUsage());
-                return;
-            }
-            try {
-                //chat.sendMessage(args[0], String.join(" ", Arrays.copyOfRange(args, 1, args.length)));
-                System.out.println("Message sent to " + args[0]);
-            } catch (Exception e) {
-                System.out.println("Failed to send message: " + e.getMessage());
-            }
-        }
-
-        @Override
-        public String getUsage() {
-            return "send <room_name> <message>";
-        }
-
-        @Override
-        public String getDescription() {
-            return "Send a message to a room";
         }
     },*/
 
@@ -180,8 +128,8 @@ public enum ChatCommand implements Command {
     LIST {
         @Override
         public void execute(P2PChatApp chat, String[] args) {
-            //Set<String> rooms = chat.getClient().getRoomsNames();
-            Set<String> rooms = chat.getClient().getRoomsIdsAndNames();
+            Set<String> rooms = chat.getRoomsNames();
+            //Set<String> rooms = chat.getClient().getRoomsIdsAndNames();
             if (rooms.isEmpty()) {
                 System.out.println("No rooms available.");
             } else {
@@ -207,7 +155,7 @@ public enum ChatCommand implements Command {
         @Override
         public void execute(P2PChatApp chat, String[] args) {
             if (args.length == 1) {
-                chat.getClient().openRoom(args[0]);
+                chat.openRoom(args[0]);
             }
             else {
                 System.out.println(getUsage());
@@ -234,9 +182,7 @@ public enum ChatCommand implements Command {
                 return;
             }
             try {
-                Client client = chat.getClient();
-                client.sendMessageInChat(args[0], String.join(" ", Arrays.copyOfRange(args, 1, args.length)));
-
+                chat.sendMessageInChat(args[0], String.join(" ", Arrays.copyOfRange(args, 1, args.length)));
 
             } catch (Exception e) {
                 System.out.println("Failed to send message: " + e.getMessage());
@@ -265,7 +211,7 @@ public enum ChatCommand implements Command {
             System.out.println("Creating room: " + roomName);
             // move the rest of the args to a set
             Set<String> participants = new HashSet<>(Arrays.asList(Arrays.copyOfRange(args, 1, args.length)));
-            chat.getClient().createRoom(roomName, participants);
+            chat.createRoom(roomName, participants);
         }
 
         @Override
@@ -281,13 +227,12 @@ public enum ChatCommand implements Command {
     CLOCK {
         @Override
         public void execute(P2PChatApp chat, String[] args) {
-            Client client = chat.getClient();
             if(args.length != 1){
                 System.out.println(getUsage());
                 return;
             }
             String roomName = args[0];
-            Room room = client.getRoomByName(roomName);
+            Room room = chat.getRoomByName(roomName);
             if (room != null){
                 System.out.println(room.getLocalClock());
             } else {

@@ -37,7 +37,7 @@ public class ChatMessage extends Message {
 
     @Override
     public void onMessage(Client client) {
-        client.processChatMessage(roomId, this);
+        client.getApp().processChatMessage(roomId, this);
     }
 
     @Override

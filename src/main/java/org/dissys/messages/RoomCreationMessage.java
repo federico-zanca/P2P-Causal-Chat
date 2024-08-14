@@ -37,7 +37,7 @@ public class RoomCreationMessage extends Message {
 
     @Override
     public void onMessage(Client client) {
-        client.processRoomCreationMessage(this);
+        client.getApp().processRoomCreationMessage(this);
     }
 
     @Override

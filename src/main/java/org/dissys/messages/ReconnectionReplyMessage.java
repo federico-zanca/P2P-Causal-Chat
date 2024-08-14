@@ -5,6 +5,8 @@ import org.dissys.network.Client;
 import java.util.List;
 import java.util.UUID;
 
+import static org.dissys.Protocols.ReconnectionProtocol.processReconnectionReplyMessage;
+
 public class ReconnectionReplyMessage extends Message {
     private final String sender;
     private final List<Message> lostMessages;
@@ -21,7 +23,7 @@ public class ReconnectionReplyMessage extends Message {
 
     @Override
     public void onMessage(Client client) {
-        client.processReconnectionReplyMessage(this);
+        processReconnectionReplyMessage(this, client);
     }
 
     @Override

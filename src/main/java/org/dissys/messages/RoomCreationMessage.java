@@ -12,12 +12,14 @@ public class RoomCreationMessage extends Message {
     private final String roomName;
     private final Set<String> participants;
     private final String sender;
+    private final String multicastIP;
 
-    public RoomCreationMessage(UUID senderId, String sender, UUID roomId, String roomName, Set<String> participants) {
+    public RoomCreationMessage(UUID senderId, String sender, UUID roomId, String roomName, Set<String> participants, String multicastIP) {
         super(senderId);
 
         this.sender = sender;
 
+        this.multicastIP = multicastIP;
         this.roomId = roomId;
         this.roomName = roomName;
         this.participants = participants;
@@ -47,5 +49,9 @@ public class RoomCreationMessage extends Message {
 
     public String getSender() {
         return sender;
+    }
+
+    public String getMulticastIP() {
+        return multicastIP;
     }
 }

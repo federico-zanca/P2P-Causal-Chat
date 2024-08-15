@@ -4,6 +4,8 @@ import org.dissys.messages.ChatMessage;
 import org.dissys.network.Client;
 
 
+import java.net.InetAddress;
+import java.net.MulticastSocket;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -15,9 +17,11 @@ public class Room {
     private final VectorClock localClock; // my vector clock
     private final Queue<ChatMessage> messageBuffer; // messages that have not been delivered
     private final List<ChatMessage> deliveredMessages; // messages that have been delivered
+    private final String multicastIP;
+    private MulticastSocket roomMulticastSocket;
+    private InetAddress roomMulticastGroup;
 
-
-    public Room(UUID roomId, String roomName, UUID localPeerId, Set<String> participants) {
+    public Room(UUID roomId, String roomName, UUID localPeerId, Set<String> participants, String multicastIP) {
         this.roomId = roomId;
         this.roomName = roomName;
         this.localPeerId = localPeerId;
@@ -25,6 +29,7 @@ public class Room {
         this.localClock = new VectorClock(participants);
         this.messageBuffer = new ConcurrentLinkedQueue<>();
         this.deliveredMessages = new ArrayList<>();
+        this.multicastIP = multicastIP;
     }
 
 
@@ -132,7 +137,7 @@ public class Room {
         VectorClock messageClock = new VectorClock(localClock);
         messageClock.incrementClock(sender);
         ChatMessage message = new ChatMessage(localPeerId, sender, roomId, content, messageClock);
-        client.sendMessage(message);
+        client.sendMessage(message, this.roomMulticastSocket, this.roomMulticastGroup);
         receiveMessage(message);
     }
 
@@ -169,5 +174,21 @@ public class Room {
 
     public UUID getRoomId() {
         return roomId;
+    }
+
+    public String getMulticastIP() {
+        return multicastIP;
+    }
+
+    public MulticastSocket getRoomMulticastSocket() {
+        return roomMulticastSocket;
+    }
+
+    public void setRoomMulticastSocket(MulticastSocket roomMulticastSocket) {
+        this.roomMulticastSocket = roomMulticastSocket;
+    }
+
+    public void setRoomMulticastGroup(InetAddress roomMulticastGroup) {
+        this.roomMulticastGroup = roomMulticastGroup;
     }
 }

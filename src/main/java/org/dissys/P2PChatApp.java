@@ -2,16 +2,14 @@ package org.dissys;
 
 import org.dissys.messages.ChatMessage;
 import org.dissys.messages.Message;
-import org.dissys.messages.ReconnectionReplyMessage;
 import org.dissys.messages.RoomCreationMessage;
 import org.dissys.network.Client;
 
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.MulticastSocket;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 import static org.dissys.Protocols.UsernameProposal.proposeUsername;
@@ -73,6 +71,7 @@ public class P2PChatApp {
         usernameRegistry.put(senderId, updatedUsername);
         // Optionally, you can update any UI components or notify the user
         // about the username change
+        //TODO questo sta intasando il log
         client.getLogger().info("username " + updatedUsername + " from " + senderId + " was put in the usernameRegistry of " + username);
     }
 
@@ -80,9 +79,24 @@ public class P2PChatApp {
         //System.out.println("Now in client.createRoom - Creating room: " + roomName);
         UUID roomId = UUID.randomUUID();
         participants.add(username);
-        Room room = new Room(roomId, roomName, client.getUUID(), participants);
+        String roomMulticastIP = generateMulticastIP();
+        Room room = new Room(roomId, roomName, client.getUUID(), participants, roomMulticastIP);
+
+        try {
+            InetAddress roomMulticastGroup = InetAddress.getByName(room.getMulticastIP());
+            MulticastSocket roomSocket = client.connectToGroup(roomMulticastGroup, client.getPort());
+            room.setRoomMulticastSocket(roomSocket);
+            room.setRoomMulticastGroup(roomMulticastGroup);
+
+            client.getSockets().put(roomMulticastIP, roomSocket);
+            //System.out.println("Sockets " + client.getSockets());
+        } catch (IOException e){
+            throw new RuntimeException("unable to connect to group for room " + room.getRoomId() + room.getRoomName() );
+        }
+
+        System.out.println("Created room " + room.getRoomName() + " with IP " + room.getMulticastIP());
         rooms.put(roomId, room);
-        client.sendMessage(new RoomCreationMessage(client.getUUID(), username, roomId, roomName, participants));
+        client.sendMessage(new RoomCreationMessage(client.getUUID(), username, roomId, roomName, participants, roomMulticastIP));
     }
 
     public void processRoomCreationMessage(RoomCreationMessage message) {
@@ -106,9 +120,21 @@ public class P2PChatApp {
             System.out.println("Room already exists: " + roomId);
             return;
         }
-        Room room = new Room(roomId, message.getRoomName(), client.getUUID(), message.getParticipants());
+        Room room = new Room(roomId, message.getRoomName(), client.getUUID(), message.getParticipants(), message.getMulticastIP());
+        try {
+            InetAddress roomMulticastGroup = InetAddress.getByName(message.getMulticastIP());
+            MulticastSocket roomSocket = client.connectToGroup(roomMulticastGroup, client.getPort());
+            room.setRoomMulticastSocket(roomSocket);
+            room.setRoomMulticastGroup(roomMulticastGroup);
+
+            client.getSockets().put(message.getMulticastIP(), roomSocket);
+        } catch (IOException e){
+            throw new RuntimeException("unable to connect to group for room " + message.getRoomId() + message.getRoomName() );
+        }
+        System.out.println("Created room " + room.getRoomName() + " with IP " + room.getMulticastIP());
         rooms.put(roomId, room);
-        System.out.println("Added new room: " + room.getRoomName() + " with id " + roomId);
+        System.out.println("Added new room: " + room.getRoomName() + " with id " + roomId + " and multicast IP " + room.getMulticastIP());
+        //System.out.println("Sockets " + client.getSockets());
 
         cli.notifyRoomInvite(room);
         //TODO acknowledge participants that you are in the room to track who knows about the room
@@ -172,6 +198,21 @@ public class P2PChatApp {
         //if the room is not found, print "Room not found: " + roomName
         System.out.println("Room not found: " + roomName);
     }
+
+    private String generateMulticastIP() {
+        // Generate a random multicast IP address in the range 224.0.0.0 to 239.255.255.255
+        String generatedIP = "239.1.1.1";
+        Random random = new Random();
+
+        while (generatedIP.equals("239.1.1.1")){
+            generatedIP = String.format("239.%d.%d.%d",
+                    random.nextInt(256),
+                    random.nextInt(256),
+                    random.nextInt(256));
+        }
+        return generatedIP;
+    }
+
     public Room getRoomByID(UUID uuid){
         return rooms.get(uuid);
     }

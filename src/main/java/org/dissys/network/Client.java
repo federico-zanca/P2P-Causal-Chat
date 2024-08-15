@@ -1,7 +1,5 @@
 package org.dissys.network;
 import org.dissys.P2PChatApp;
-import org.dissys.Room;
-import org.dissys.VectorClock;
 import org.dissys.messages.*;
 import org.dissys.utils.LoggerConfig;
 
@@ -10,7 +8,6 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 //might need to make observable
 public class Client {
@@ -27,17 +24,25 @@ public class Client {
     private NetworkInterface networkInterface;
     private static final Logger logger = LoggerConfig.getLogger();
     private Map<UUID, Boolean> processedMessages;
+    private final Map<String, MulticastSocket> sockets;
+
+    public MulticastSocket getMulticastSocket(){
+        return this.multicastSocket;
+    }
 
     public Client(P2PChatApp app){
         this.app = app;
+        this.sockets = new ConcurrentHashMap<>();
         uuid = UUID.randomUUID();
         this.connectedPeers = new ConcurrentHashMap<>();
         try {
             group = InetAddress.getByName(MULTICAST_ADDRESS);
-            connectToGroup(group, PORT);
+            multicastSocket = connectToGroup(group, PORT);
         } catch (IOException e) {
             throw new RuntimeException("unable to connect to group");
         }
+
+        sockets.put(MULTICAST_ADDRESS, multicastSocket);
 
         processedMessages = new LinkedHashMap<UUID, Boolean>(MAX_MSG_CACHE_SIZE, 0.75f, true) {
             @Override
@@ -51,10 +56,10 @@ public class Client {
         new Thread(this::receiveMessages).start();
 
         // Start sending periodic heartbeat
-        new Thread(this::sendPeriodicHeartbeat).start();
+        //new Thread(this::sendPeriodicHeartbeat).start();
 
         // Start a thread to remove stale peers
-        new Thread(this::removeInactivePeers).start();
+        //new Thread(this::removeInactivePeers).start();
 
         // Send initial discovery message
         sendDiscoveryMessage();
@@ -91,16 +96,16 @@ public class Client {
         }
     }*/
 
-    private void connectToGroup(InetAddress groupAddress, int port) throws IOException {
+    public MulticastSocket connectToGroup(InetAddress groupAddress, int port) throws IOException {
 
-        multicastSocket = new MulticastSocket(port);
+        MulticastSocket multicastSocket = new MulticastSocket(port);
         networkInterface = findNetworkInterface();
         if (networkInterface == null) {
             throw new IOException("no suitable network interface found");
         }
         multicastSocket.joinGroup(new InetSocketAddress(groupAddress, port), networkInterface);
         System.out.println("connected to multicast socket " + multicastSocket.getLocalSocketAddress() + " with port " + multicastSocket.getLocalPort());
-
+        return multicastSocket;
     }
     private void leaveGroup() throws IOException {
         multicastSocket.leaveGroup(new InetSocketAddress(group, PORT), networkInterface);
@@ -123,11 +128,14 @@ public class Client {
         }
     }
 
+    public void sendMessage(Message message){
+        sendMessage(message, this.multicastSocket, this.group);
+    }
 
-    public void sendMessage(Message message) {
+    public void sendMessage(Message message, MulticastSocket socket, InetAddress group) {
         if(!(message instanceof HeartbeatMsg)){
             //System.out.println("Sending " + message);
-            logger.info("Sending " + message);
+            logger.info("Sending " + message + "\nROOMSOCKET= " + socket + "\n");
         }
         try {
             // Serialize the Message object
@@ -140,7 +148,7 @@ public class Client {
             byte[] buffer = baos.toByteArray();
 
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, PORT);
-            multicastSocket.send(packet);
+            socket.send(packet);
 
             // Close the streams
             oos.close();
@@ -151,13 +159,52 @@ public class Client {
     }
 
     private void receiveMessages() {
+
+        while (!Thread.currentThread().isInterrupted()) {
+            for(Map.Entry<String, MulticastSocket> entry : sockets.entrySet()){
+                try {
+                    MulticastSocket socket = entry.getValue();
+                    byte[] buffer = new byte[8192]; // Increased buffer size for serialized objects
+                    DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+
+                    socket.setSoTimeout(500);
+
+                    try {
+                        socket.receive(packet);
+                        ByteArrayInputStream bais = new ByteArrayInputStream(packet.getData());
+                        ObjectInputStream ois = new ObjectInputStream(bais);
+
+                        Message message = (Message) ois.readObject();
+                        //if (!(message instanceof HeartbeatMsg))
+                        //    System.out.println("Received message on " + entry.getKey() + message);
+                        // Check if the message has already been processed
+                        // TODO: may become really expensive, should cache only the last N messages
+                        if (!processedMessages.containsKey(message.getMessageUUID())) {
+                            processedMessages.put(message.getMessageUUID(), true);
+                            processMessage(message);
+                        }
+
+                        ois.close();
+                        bais.close();
+
+                    } catch (SocketTimeoutException ignored) {
+                        // Ignore timeout and continue to the next socket
+                    }
+                }catch (IOException | ClassNotFoundException e) {
+                        e.printStackTrace();
+                        break;
+                }
+            }
+        }
+        /*
+
         while (!Thread.currentThread().isInterrupted()) {
             byte[] buffer = new byte[8192]; // Increased buffer size for serialized objects
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 
             try {
                 multicastSocket.receive(packet);
-                ByteArrayInputStream bais = new  ByteArrayInputStream(packet.getData());
+                ByteArrayInputStream bais = new ByteArrayInputStream(packet.getData());
                 ObjectInputStream ois = new ObjectInputStream(bais);
 
                 Message message = (Message) ois.readObject();
@@ -176,6 +223,9 @@ public class Client {
                 break;
             }
         }
+
+                          */
+
     }
     public void processMessage(Message message) {
         if(!message.getSenderId().equals(uuid)){
@@ -189,13 +239,13 @@ public class Client {
 
     public void updatePeerList(UUID peerId) {
         connectedPeers.put(peerId, System.currentTimeMillis());
-        logger.info("Peer discovered/updated: " + peerId);
+        //logger.info("Peer discovered/updated: " + peerId);
     }
     private void removeInactivePeers() {
         while (!Thread.currentThread().isInterrupted()) {
             long now = System.currentTimeMillis();
             connectedPeers.entrySet().removeIf(entry ->
-                    now - entry.getValue() > PEER_TIMEOUT);
+            now - entry.getValue() > PEER_TIMEOUT);
             try {
                 Thread.sleep(PEER_TIMEOUT / 2);
             } catch (InterruptedException e) {
@@ -226,6 +276,9 @@ public class Client {
         return uuid;
     }
 
+    public int getPort(){
+        return PORT;
+    }
 /*
     public void processReconnectionRequestMessage(ReconnectionRequestMessage message) {
         Map<UUID, VectorClock> requestedRoomsByMessageClocks = message.getRoomsClocks();
@@ -296,6 +349,10 @@ public class Client {
 
     public Logger getLogger() {
         return logger;
+    }
+
+    public Map<String, MulticastSocket> getSockets() {
+        return sockets;
     }
 }
 

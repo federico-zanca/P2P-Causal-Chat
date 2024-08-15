@@ -27,7 +27,10 @@ public class ReconnectionProtocol {
             Set<String> participants = new HashSet<>();
             participants.add(username);
             participants.add("amuro");
-            Room fakeroom = new Room(uuid, "pizza", uuid, participants);
+            System.out.print("Metti l'ip multicast della room per cui stai simulando la riconnessione -> ");
+            String multicastIP = scanner.nextLine().trim();
+            Room fakeroom = new Room(uuid, "pizza", uuid, participants, multicastIP);
+            //fakeroom.setMulticastSocket(client.conn);
             app.addRoom(uuid, fakeroom);
             // end of fake part
 

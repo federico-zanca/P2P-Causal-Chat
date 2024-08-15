@@ -4,6 +4,7 @@ import org.dissys.P2PChatApp;
 import org.dissys.Room;
 import org.dissys.network.Client;
 import org.dissys.utils.LoggerConfig;
+import org.dissys.utils.PersistenceManager;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -111,6 +112,7 @@ public enum ChatCommand implements Command {
         @Override
         public void execute(P2PChatApp chat, String[] args) {
             System.out.println("Goodbye!");
+            PersistenceManager.saveState(chat);
             System.exit(0);
         }
 

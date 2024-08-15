@@ -1,7 +1,9 @@
 package org.dissys.network;
 import org.dissys.P2PChatApp;
 import org.dissys.messages.*;
+import org.dissys.utils.AppState;
 import org.dissys.utils.LoggerConfig;
+import org.dissys.utils.PersistenceManager;
 
 import java.io.*;
 import java.net.*;
@@ -33,7 +35,14 @@ public class Client {
     public Client(P2PChatApp app){
         this.app = app;
         this.sockets = new ConcurrentHashMap<>();
-        uuid = UUID.randomUUID();
+
+        AppState state = PersistenceManager.loadState();
+        if (state != null) {
+            this.uuid = state.getClientUUID();
+        } else {
+            this.uuid = UUID.randomUUID();
+        }
+
         this.connectedPeers = new ConcurrentHashMap<>();
         try {
             group = InetAddress.getByName(MULTICAST_ADDRESS);
@@ -354,6 +363,27 @@ public class Client {
     public Map<String, MulticastSocket> getSockets() {
         return sockets;
     }
+
+    public Map<UUID, Long> getConnectedPeers() {
+        return connectedPeers;
+    }
+
+    public Map<UUID, Boolean> getProcessedMessages() {
+        return processedMessages;
+    }
+
+    public InetAddress getGroup() {
+        return group;
+    }
+
+    public NetworkInterface getNetworkInterface() {
+        return networkInterface;
+    }
+
+    public static String getMulticastAddress() {
+        return MULTICAST_ADDRESS;
+    }
+
 }
 
 

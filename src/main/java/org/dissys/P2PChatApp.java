@@ -4,6 +4,8 @@ import org.dissys.messages.ChatMessage;
 import org.dissys.messages.Message;
 import org.dissys.messages.RoomCreationMessage;
 import org.dissys.network.Client;
+import org.dissys.utils.AppState;
+import org.dissys.utils.PersistenceManager;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -15,29 +17,71 @@ import java.util.stream.Collectors;
 import static org.dissys.Protocols.UsernameProposal.proposeUsername;
 
 public class P2PChatApp {
-
-    public static void main(String[] args){
-        P2PChatApp app = new P2PChatApp();
-        CLI cli = new CLI(app);
-        Client client = new Client(app);
-
-        app.setCLI(cli);
-        app.setClient(client);
-
-        client.start();
-        cli.start();
-
-    }
     private Client client;
     private CLI cli;
     private Map<UUID, Room> rooms;
     private Map<UUID, String> usernameRegistry;
     private String username = null;
+
+
     public P2PChatApp(){
         this.rooms = new ConcurrentHashMap<>();
         this.usernameRegistry = new ConcurrentHashMap<>();
     }
 
+    public static void main(String[] args){
+        P2PChatApp app = new P2PChatApp();
+        Client client = new Client(app);
+        app.setClient(client);
+
+        app.initialize();
+        CLI cli = new CLI(app);
+
+        app.setCLI(cli);
+
+        client.start();
+        cli.start();
+
+        // Add shutdown hook to save state when the application exits
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            PersistenceManager.saveState(app);
+            System.out.println("SALVANDO");
+        }));
+    }
+
+    private void initialize() {
+        AppState state = PersistenceManager.loadState();
+        /*
+        if (state != null) {
+            this.username = state.getUsername();
+            this.rooms = new ConcurrentHashMap<>();
+            for (Room room : state.getRooms()) {
+                this.rooms.put(room.getRoomId(), room);
+            }
+            // The client UUID will be set when the Client is created
+
+         */
+
+        if (state != null) {
+            this.username = state.getUsername();
+            this.rooms = new ConcurrentHashMap<>();
+            for (Room room : state.getRooms()) {
+                this.rooms.put(room.getRoomId(), room);
+                // Reconnect the room's MulticastSocket
+                try {
+                    InetAddress group = InetAddress.getByName(room.getMulticastIP());
+                    MulticastSocket socket = client.connectToGroup(group, client.getPort());
+                    room.reconnect(socket, group);
+                } catch (IOException e) {
+                    System.out.println("Failed to reconnect to room " + room.getRoomName() + ": " + e.getMessage());
+                }
+            }
+            //this.usernameRegistry = new ConcurrentHashMap<>(state.getUsernameRegistry());
+        } else {
+            this.rooms = new ConcurrentHashMap<>();
+            this.usernameRegistry = new ConcurrentHashMap<>();
+        }
+    }
 
     private void setClient(Client client) {
         this.client = client;
@@ -250,5 +294,13 @@ public class P2PChatApp {
 
     public void sendMessage(Message message) {
         client.sendMessage(message);
+    }
+
+    public Map<UUID, Room> getRooms() {
+        return rooms;
+    }
+
+    public List<Room> getRoomsAsList() {
+        return new ArrayList<>(rooms.values());
     }
 }

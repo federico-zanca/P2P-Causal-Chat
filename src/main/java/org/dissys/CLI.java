@@ -21,8 +21,10 @@ public class CLI {
         System.out.println("CLI started");
         System.out.println("Welcome to P2P Chat!");
 
-        if(!app.isUsernameSet()){
+        if (!app.isUsernameSet()) {
             askForUsername();
+        } else {
+            System.out.println("Welcome back, " + app.getUsername() + "!");
         }
 
         while (true) {

@@ -4,22 +4,25 @@ import org.dissys.messages.ChatMessage;
 import org.dissys.network.Client;
 
 
+import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class Room {
+public class Room implements Serializable {
     private final UUID roomId;
     private final String roomName;
     private final UUID localPeerId;    // basically my id
     private final Set<String> participants; // all participants in the room (including me)
-    private final VectorClock localClock; // my vector clock
+    private VectorClock localClock; // my vector clock
     private final Queue<ChatMessage> messageBuffer; // messages that have not been delivered
-    private final List<ChatMessage> deliveredMessages; // messages that have been delivered
+    private List<ChatMessage> deliveredMessages; // messages that have been delivered
     private final String multicastIP;
     private MulticastSocket roomMulticastSocket;
     private InetAddress roomMulticastGroup;
+
+
 
     public Room(UUID roomId, String roomName, UUID localPeerId, Set<String> participants, String multicastIP) {
         this.roomId = roomId;
@@ -157,6 +160,10 @@ public class Room {
         return  localClock;
     }
 
+    public void setLocalClock(VectorClock clock) {
+        this.localClock = clock;
+    }
+
     public List<ChatMessage> getBufferedMessages() {
         return new ArrayList<>(messageBuffer);
     }
@@ -176,6 +183,10 @@ public class Room {
         return roomId;
     }
 
+    public UUID getLocalPeerId() {
+        return localPeerId;
+    }
+
     public String getMulticastIP() {
         return multicastIP;
     }
@@ -188,7 +199,17 @@ public class Room {
         this.roomMulticastSocket = roomMulticastSocket;
     }
 
+    public void setDeliveredMessages(List<ChatMessage> messages) {
+        this.deliveredMessages = new ArrayList<>(messages);
+    }
+
     public void setRoomMulticastGroup(InetAddress roomMulticastGroup) {
         this.roomMulticastGroup = roomMulticastGroup;
+    }
+
+    // When reconnecting, you'll need to recreate the MulticastSocket
+    public void reconnect(MulticastSocket socket, InetAddress group) {
+        this.roomMulticastSocket = socket;
+        this.roomMulticastGroup = group;
     }
 }

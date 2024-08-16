@@ -9,19 +9,20 @@ import java.util.*;
 public class AppState implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private String username;
-    private UUID clientUUID;
-    private List<SerializableRoom> serializedRooms;
+    private final String username;
+    private final UUID clientUUID;
+    private final List<SerializableRoom> serializedRooms;
     private transient List<Room> rooms; // don't serialize this field
-    private Map<UUID, String> usernameRegistry;
+    private final Map<UUID, String> usernameRegistry;
     private Map<UUID, Long> connectedPeers;
     private Map<UUID, VectorClock> roomClocks;
     private LinkedHashMap<UUID, Boolean> processedMessages;
 
-    public AppState(String username, UUID clientUUID, List<SerializableRoom> rooms) {
+    public AppState(String username, UUID clientUUID, List<SerializableRoom> rooms, Map<UUID, String> usernameRegistry) {
         this.username = username;
         this.clientUUID = clientUUID;
         this.serializedRooms = rooms;
+        this.usernameRegistry = usernameRegistry;
     }
 
 

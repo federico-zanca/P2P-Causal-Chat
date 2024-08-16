@@ -27,9 +27,9 @@ public class PersistenceManager {
                     app.getClient().getUUID(),
                     //app.getRoomsAsList()
                     //TODO guarda se bisogna ripristinare altro
-                    serializeRooms(app.getRoomsValuesAsArrayList())
+                    serializeRooms(app.getRoomsValuesAsArrayList()),
+                    app.getUsernameRegistry()
                     /*
-                    app.getUsernameRegistry(),
                     app.getClient().getConnectedPeers(),
                     app.getClient().getProcessedMessages()
                     */

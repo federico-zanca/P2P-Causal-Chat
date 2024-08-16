@@ -39,6 +39,7 @@ public class ReconnectionProtocol {
     }
 
     public static void processReconnectionRequestMessage(ReconnectionRequestMessage message, P2PChatApp app) {
+        Boolean requestedUpdate = false;
         String username = app.getUsername();
         UUID uuid = app.getUUID();
         Map<UUID, VectorClock> requestedRoomsByMessageClocks = message.getRoomsClocks();
@@ -56,6 +57,17 @@ public class ReconnectionProtocol {
             }
         }
 
+        //  check if the requester is in a room in which I am, but I don't know -> I lost RoomCreationMessage
+        for(Map.Entry<UUID, VectorClock> entry : requestedRoomsByMessageClocks.entrySet()) {
+            Room room = app.getRoomByID(entry.getKey());
+            if(room == null && entry.getValue().getClock().containsKey(app.getUsername())){
+                // send ReconnectionRequestMessage
+                ReconnectionRequestMessage reconnectionRequestMessage = new ReconnectionRequestMessage(uuid, username, app.getRoomsValuesAsArrayList());
+                app.sendMessage(reconnectionRequestMessage);
+                requestedUpdate = true;
+            }
+
+        }
 
         for ( UUID reqRoomId : requestedRoomsByMessageClocks.keySet()){
             System.out.println("Retrieving messages for room " + reqRoomId);
@@ -81,6 +93,7 @@ public class ReconnectionProtocol {
                 }
             }
 
+            //TODO may add check if I already requested an update because I found out that I am missing a room
             if(needsUpdate) {
                 roomsToUpdate.add(reqRoom);
             }
@@ -93,6 +106,7 @@ public class ReconnectionProtocol {
             }
 
             // craft ReconnectionRequestMessage for rooms that need to be updated
+            //TODO may add check if I already requested an update because I found out that I am missing a room
             if(!roomsToUpdate.isEmpty()) {
                 ReconnectionRequestMessage askForUpdateMessage = new ReconnectionRequestMessage(uuid, username, roomsToUpdate);
                 app.sendMessage(askForUpdateMessage);

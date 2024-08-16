@@ -65,10 +65,10 @@ public class Client {
         new Thread(this::receiveMessages).start();
 
         // Start sending periodic heartbeat
-        //new Thread(this::sendPeriodicHeartbeat).start();
+        new Thread(this::sendPeriodicHeartbeat).start();
 
         // Start a thread to remove stale peers
-        //new Thread(this::removeInactivePeers).start();
+        new Thread(this::removeInactivePeers).start();
 
         // Send initial discovery message
         sendDiscoveryMessage();
@@ -78,32 +78,7 @@ public class Client {
 
 
     }
-/*
-    private void askIfReconnecting() {
-        System.out.println("Are you reconnecting to the chat? (y/N)");
-        Scanner scanner = new Scanner(System.in);
-        String answer = scanner.nextLine();
-        if (answer.trim().equalsIgnoreCase("y")) {
 
-
-
-            // begin of fake part for simulation purposes
-            System.out.print("Metti l'id della room per cui stai simulando la riconnessione -> ");
-            String roomId = scanner.nextLine().trim();
-            UUID uuid = UUID.fromString(roomId);
-            Set<String> participants = new HashSet<>();
-            participants.add(username);
-            participants.add("amuro");
-            Room fakeroom = new Room(uuid, "pizza", uuid, participants);
-            rooms.put(uuid, fakeroom);
-            // end of fake part
-
-
-
-            ReconnectionRequestMessage message = new ReconnectionRequestMessage(uuid, username, new ArrayList<>(rooms.values()));
-            sendMessage(message);
-        }
-    }*/
 
     public MulticastSocket connectToGroup(InetAddress groupAddress, int port) throws IOException {
 
@@ -288,69 +263,6 @@ public class Client {
     public int getPort(){
         return PORT;
     }
-/*
-    public void processReconnectionRequestMessage(ReconnectionRequestMessage message) {
-        Map<UUID, VectorClock> requestedRoomsByMessageClocks = message.getRoomsClocks();
-        boolean needsUpdate = false;
-        List<Message> bundleOfMessagesOtherNeeds = null;
-        List<Room> roomsToUpdate = null;
-        VectorClock localRoomClock = null;
-
-        //TODO check if I am in a room in which the requester is but he doesn't know -> he lost RoomCreationMessage
-
-        for ( UUID reqRoomId : requestedRoomsByMessageClocks.keySet()){
-            System.out.println("Retrieving messages for room " + reqRoomId);
-            bundleOfMessagesOtherNeeds = new ArrayList<>();
-            roomsToUpdate = new ArrayList<>();
-
-            needsUpdate = false;
-            Room reqRoom = rooms.get(reqRoomId);
-
-            if(reqRoom == null) {
-                continue;
-            }
-
-            localRoomClock = reqRoom.getLocalClock();
-
-            for(ChatMessage deliveredMessage : reqRoom.getDeliveredMessages()) {
-                if (deliveredMessage.getVectorClock().isAheadOf(requestedRoomsByMessageClocks.get(reqRoomId))) {
-                    bundleOfMessagesOtherNeeds.add(deliveredMessage);
-                }
-                if (localRoomClock.isBehindOf(requestedRoomsByMessageClocks.get(reqRoomId))) {
-                    // flags this room to be added to list of rooms that need to be updated (need to ask other peers to send missing messages)
-                    needsUpdate = true;
-                }
-            }
-
-            if(needsUpdate) {
-                roomsToUpdate.add(reqRoom);
-            }
-
-            // send missing messages to requesting peer
-            // TODO : do it after random amount of time and check if anyone else already sent it before sending
-            if(!bundleOfMessagesOtherNeeds.isEmpty()) {
-                ReconnectionReplyMessage replyMessage = new ReconnectionReplyMessage(uuid, username, bundleOfMessagesOtherNeeds);
-                sendMessage(replyMessage);
-            }
-
-            //TODO not fully tested yet
-            if(!roomsToUpdate.isEmpty()) {
-                ReconnectionRequestMessage askForUpdateMessage = new ReconnectionRequestMessage(uuid, username, roomsToUpdate);
-                sendMessage(askForUpdateMessage);
-            }
-        }
-
-        // craft ReconnectionRequestMessage for rooms that need to be updated
-
-
-    }*/
-/*
-    public void processReconnectionReplyMessage(ReconnectionReplyMessage reconnectionReplyMessage) {
-        List<Message> messages = reconnectionReplyMessage.getLostMessages();
-        for(Message message : messages){
-            processMessage(message);
-        }
-    }*/
 
     public P2PChatApp getApp(){
         return app;

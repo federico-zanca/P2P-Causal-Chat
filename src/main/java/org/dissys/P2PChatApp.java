@@ -1,8 +1,6 @@
 package org.dissys;
 
-import org.dissys.messages.ChatMessage;
-import org.dissys.messages.Message;
-import org.dissys.messages.RoomCreationMessage;
+import org.dissys.messages.*;
 import org.dissys.network.Client;
 import org.dissys.utils.AppState;
 import org.dissys.utils.PersistenceManager;
@@ -51,16 +49,6 @@ public class P2PChatApp {
 
     private void initialize() {
         AppState state = PersistenceManager.loadState();
-        /*
-        if (state != null) {
-            this.username = state.getUsername();
-            this.rooms = new ConcurrentHashMap<>();
-            for (Room room : state.getRooms()) {
-                this.rooms.put(room.getRoomId(), room);
-            }
-            // The client UUID will be set when the Client is created
-
-         */
 
         if (state != null) {
             this.username = state.getUsername();
@@ -75,12 +63,21 @@ public class P2PChatApp {
                 } catch (IOException e) {
                     System.out.println("Failed to reconnect to room " + room.getRoomName() + ": " + e.getMessage());
                 }
+                // The client UUID will be set when the Client is created
             }
-            //this.usernameRegistry = new ConcurrentHashMap<>(state.getUsernameRegistry());
+            this.usernameRegistry = new ConcurrentHashMap<>(state.getUsernameRegistry());
+
+            retrieveLostMessages();
+
         } else {
             this.rooms = new ConcurrentHashMap<>();
             this.usernameRegistry = new ConcurrentHashMap<>();
         }
+    }
+
+    private void retrieveLostMessages(){
+        ReconnectionRequestMessage message = new ReconnectionRequestMessage(this.client.getUUID(), username, new ArrayList<>(rooms.values()));
+        sendMessage(message);
     }
 
     private void setClient(Client client) {

@@ -117,7 +117,7 @@ public class Client {
     }
 
     public void sendMessage(Message message, MulticastSocket socket, InetAddress group) {
-        if(!(message instanceof HeartbeatMsg                    )){
+        if(!(message instanceof HeartbeatMsg)){
             //System.out.println("Sending " + message);
             logger.info("Sending " + message + "\nROOMSOCKET= " + socket + "\n");
         }

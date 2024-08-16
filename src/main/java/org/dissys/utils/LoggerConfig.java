@@ -1,5 +1,6 @@
 package org.dissys.utils;
 
+import java.io.File;
 import java.util.logging.*;
 import java.io.IOException;
 
@@ -33,5 +34,12 @@ public class LoggerConfig {
 
     public static String getLogFilePath() {
         return LOG_FILE;
+    }
+
+    public static void deleteLogFile() {
+        File logFile = new File(LOG_FILE);
+        if (logFile.exists()) {
+            logFile.delete();
+        }
     }
 }

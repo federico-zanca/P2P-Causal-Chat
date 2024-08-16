@@ -9,10 +9,9 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import org.dissys.P2PChatApp;
 import org.dissys.Room;
-import org.dissys.utils.AppState;
-import org.dissys.utils.LoggerConfig;
 
 public class PersistenceManager {
+    private static boolean willReset = false;
     private static final String SAVE_FILE = "chat_app_state.json";
     private static final Logger logger = LoggerConfig.getLogger();
     private static final Gson gson = new GsonBuilder()
@@ -75,6 +74,31 @@ public class PersistenceManager {
         return rooms;
     }
 
+
+    public static boolean reset() {
+        setReset();
+        File file = new File(SAVE_FILE);
+        if (file.exists()) {
+            boolean deleted = file.delete();
+            if (deleted) {
+                logger.info("Application state file deleted successfully.");
+            } else {
+                logger.severe("Failed to delete application state file.");
+            }
+            return deleted;
+        } else {
+            logger.info("No saved state file found to delete.");
+            return false;
+        }
+    }
+
+    public static boolean getWillReset() {
+        return willReset;
+    }
+
+    private static void setReset() {
+        PersistenceManager.willReset = true;
+    }
 
 
     private static class UUIDTypeAdapter extends TypeAdapter<UUID> {

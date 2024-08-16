@@ -3,10 +3,7 @@ package org.dissys.Protocols;
 import org.dissys.P2PChatApp;
 import org.dissys.Room;
 import org.dissys.VectorClock;
-import org.dissys.messages.ChatMessage;
-import org.dissys.messages.Message;
-import org.dissys.messages.ReconnectionReplyMessage;
-import org.dissys.messages.ReconnectionRequestMessage;
+import org.dissys.messages.*;
 import org.dissys.network.Client;
 
 import java.util.*;
@@ -50,7 +47,15 @@ public class ReconnectionProtocol {
         List<Room> roomsToUpdate = null;
         VectorClock localRoomClock = null;
 
-        //TODO check if I am in a room in which the requester is but he doesn't know -> he lost RoomCreationMessage
+        // check if I am in a room in which the requester is, but he doesn't know -> he lost RoomCreationMessage
+        for(Room room : app.getRoomsValuesAsArrayList()) {
+            if(room.getParticipants().contains(message.getSender()) && !requestedRoomsByMessageClocks.containsKey(room.getRoomId())) {
+                // send RoomCreationMessage
+                RoomCreationMessage roomCreationMessage = new RoomCreationMessage(uuid, username, room.getRoomId(), room.getRoomName(), room.getParticipants(), room.getMulticastIP());
+                app.sendMessage(roomCreationMessage);
+            }
+        }
+
 
         for ( UUID reqRoomId : requestedRoomsByMessageClocks.keySet()){
             System.out.println("Retrieving messages for room " + reqRoomId);
@@ -87,14 +92,14 @@ public class ReconnectionProtocol {
                 app.sendMessage(replyMessage);
             }
 
-            //TODO not fully tested yet
+            // craft ReconnectionRequestMessage for rooms that need to be updated
             if(!roomsToUpdate.isEmpty()) {
                 ReconnectionRequestMessage askForUpdateMessage = new ReconnectionRequestMessage(uuid, username, roomsToUpdate);
                 app.sendMessage(askForUpdateMessage);
             }
         }
 
-        // craft ReconnectionRequestMessage for rooms that need to be updated
+
 
 
     }

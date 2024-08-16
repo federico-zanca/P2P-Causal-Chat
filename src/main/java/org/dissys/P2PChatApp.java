@@ -109,11 +109,13 @@ public class P2PChatApp {
     }
 
     public void updateUsernameRegistry(String updatedUsername, UUID senderId) {
-        usernameRegistry.put(senderId, updatedUsername);
         // Optionally, you can update any UI components or notify the user
         // about the username change
-        //TODO questo sta intasando il log
-        client.getLogger().info("username " + updatedUsername + " from " + senderId + " was put in the usernameRegistry of " + username);
+        if(usernameRegistry.get(senderId) == null){
+            client.getLogger().info("username " + updatedUsername + " from " + senderId + " was put in the usernameRegistry of " + usernameRegistry.get(senderId));
+        }
+        //client.getLogger().info("username " + updatedUsername + " from " + senderId + " was put in the usernameRegistry of " + username);
+        usernameRegistry.put(senderId, updatedUsername);
     }
 
     public void createRoom(String roomName, Set<String> participants) {
@@ -142,15 +144,6 @@ public class P2PChatApp {
 
     public void processRoomCreationMessage(RoomCreationMessage message) {
         if(!message.getParticipants().contains(username)){
-
-            //System.out.println("My username: " + username);
-            //System.out.println("Participants:");
-
-            //for (String participant : message.getParticipants()) {
-
-            //    System.out.println(participant + "->" +(participant.equals(username)));
-            //}
-
             //logger.info("Room creation message not for me: " + message);
             System.out.println("Room creation message not for me: " + message);
             return;
@@ -178,7 +171,6 @@ public class P2PChatApp {
         //System.out.println("Sockets " + client.getSockets());
 
         cli.notifyRoomInvite(room);
-        //TODO acknowledge participants that you are in the room to track who knows about the room
     }
 
     public void sendMessageInChat(String roomName, String content) {

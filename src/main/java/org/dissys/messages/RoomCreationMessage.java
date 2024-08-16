@@ -1,9 +1,7 @@
 package org.dissys.messages;
 
-import org.dissys.Room;
 import org.dissys.network.Client;
 
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 

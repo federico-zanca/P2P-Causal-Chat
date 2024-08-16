@@ -9,34 +9,6 @@ import org.dissys.network.Client;
 import java.util.*;
 
 public class ReconnectionProtocol {
-    private void askIfReconnecting(P2PChatApp app) {
-        System.out.println("Are you reconnecting to the chat? (y/N)");
-        Scanner scanner = new Scanner(System.in);
-        String answer = scanner.nextLine();
-        if (answer.trim().equalsIgnoreCase("y")) {
-            String username = app.getUsername();
-
-
-            // begin of fake part for simulation purposes
-            System.out.print("Metti l'id della room per cui stai simulando la riconnessione -> ");
-            String roomId = scanner.nextLine().trim();
-            UUID uuid = UUID.fromString(roomId);
-            Set<String> participants = new HashSet<>();
-            participants.add(username);
-            participants.add("amuro");
-            System.out.print("Metti l'ip multicast della room per cui stai simulando la riconnessione -> ");
-            String multicastIP = scanner.nextLine().trim();
-            Room fakeroom = new Room(uuid, "pizza", uuid, participants, multicastIP);
-            //fakeroom.setMulticastSocket(client.conn);
-            app.addRoom(uuid, fakeroom);
-            // end of fake part
-
-
-
-            ReconnectionRequestMessage message = new ReconnectionRequestMessage(uuid, username, app.getRoomsValuesAsArrayList());
-            app.getClient().sendMessage(message);
-        }
-    }
 
     public static void processReconnectionRequestMessage(ReconnectionRequestMessage message, P2PChatApp app) {
         Boolean requestedUpdate = false;

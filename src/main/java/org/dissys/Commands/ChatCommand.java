@@ -2,7 +2,6 @@ package org.dissys.Commands;
 
 import org.dissys.P2PChatApp;
 import org.dissys.Room;
-import org.dissys.network.Client;
 import org.dissys.utils.LoggerConfig;
 import org.dissys.utils.PersistenceManager;
 

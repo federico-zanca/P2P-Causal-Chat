@@ -1,5 +1,6 @@
 package org.dissys.Commands;
 
+import org.dissys.CLI.ForegroundColorANSI;
 import org.dissys.P2PChatApp;
 import org.dissys.Room;
 import org.dissys.utils.LoggerConfig;
@@ -10,6 +11,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
+import static org.dissys.CLI.ForegroundColorANSI.*;
+
 public enum ChatCommand implements Command {
 
     HELP {
@@ -17,7 +20,8 @@ public enum ChatCommand implements Command {
         public void execute(P2PChatApp chat, String[] args) {
             System.out.println("Available commands:");
             for (ChatCommand cmd : ChatCommand.values()) {
-                System.out.printf("  %-10s - %s%n", cmd.getUsage(), cmd.getDescription());
+                System.out.printf( "  %-10s - %s%n" , colorString(cmd.getUsage(), GREEN), colorString(cmd.getDescription(), LIGHT_GRAY));
+
             }
         }
 

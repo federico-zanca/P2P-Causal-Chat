@@ -32,7 +32,7 @@ public class Client {
         return this.multicastSocket;
     }
 
-    public Client(P2PChatApp app){
+    public Client(P2PChatApp app) throws UnknownHostException {
         this.app = app;
         this.sockets = new ConcurrentHashMap<>();
 
@@ -44,14 +44,12 @@ public class Client {
         }
 
         this.connectedPeers = new ConcurrentHashMap<>();
-        try {
-            group = InetAddress.getByName(MULTICAST_ADDRESS);
-            multicastSocket = connectToGroup(group, PORT);
-        } catch (IOException e) {
-            throw new RuntimeException("unable to connect to group");
-        }
 
-        sockets.put(MULTICAST_ADDRESS, multicastSocket);
+        group = InetAddress.getByName(MULTICAST_ADDRESS);
+        //multicastSocket = connectToGroup(group, PORT);
+
+
+
 
         processedMessages = new LinkedHashMap<UUID, Boolean>(MAX_MSG_CACHE_SIZE, 0.75f, true) {
             @Override
@@ -60,7 +58,12 @@ public class Client {
             }
         };
     }
-    public void start(){
+    public void start() throws IOException {
+
+        multicastSocket = connectToGroup(group, PORT);
+
+        sockets.put(MULTICAST_ADDRESS, multicastSocket);
+
         // Start listening for peer messages
         new Thread(this::receiveMessages).start();
 
@@ -88,7 +91,7 @@ public class Client {
             throw new IOException("no suitable network interface found");
         }
         multicastSocket.joinGroup(new InetSocketAddress(groupAddress, port), networkInterface);
-        System.out.println("connected to multicast socket " + multicastSocket.getLocalSocketAddress() + " with port " + multicastSocket.getLocalPort());
+        //System.out.println("connected to multicast socket " + MULTICAST_ADDRESS + " with port " + PORT);
         return multicastSocket;
     }
     private void leaveGroup() throws IOException {

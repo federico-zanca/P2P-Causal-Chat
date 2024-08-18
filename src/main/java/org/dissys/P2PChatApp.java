@@ -1,5 +1,10 @@
 package org.dissys;
 
+import org.dissys.CLI.CLI;
+import org.dissys.CLI.Input.CLIInputTypes;
+import org.dissys.CLI.Input.RoomCreated;
+import org.dissys.CLI.Input.RoomMessage;
+import org.dissys.CLI.State.InRoomState;
 import org.dissys.messages.*;
 import org.dissys.network.Client;
 import org.dissys.utils.AppState;
@@ -8,6 +13,7 @@ import org.dissys.utils.PersistenceManager;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -19,7 +25,8 @@ public class P2PChatApp {
     private CLI cli;
     private Map<UUID, Room> rooms;
     private Map<UUID, String> usernameRegistry;
-    private String username = null;
+    private static String username = null;
+    private static String proposedUsername = null;
 
 
     public P2PChatApp(){
@@ -29,7 +36,12 @@ public class P2PChatApp {
 
     public static void main(String[] args){
         P2PChatApp app = new P2PChatApp();
-        Client client = new Client(app);
+        Client client = null;
+        try {
+            client = new Client(app);
+        } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
+        }
         app.setClient(client);
 
         app.initialize();
@@ -37,7 +49,29 @@ public class P2PChatApp {
 
         app.setCLI(cli);
 
-        client.start();
+        cli.printAsciiArtTitle();
+
+        if(username == null){
+            proposedUsername = cli.askForUsername();
+            try {
+                client.start();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            while (!app.proposeUsernameToPeers(proposedUsername)){
+                cli.printWarning("Username taken, retry with a different username");
+                proposedUsername = cli.askForUsername();
+            }
+        }else {
+            try {
+                client.start();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+
+
         cli.start();
 
         // Add shutdown hook to save state when the application exits
@@ -115,7 +149,7 @@ public class P2PChatApp {
             client.getLogger().info("username " + updatedUsername + " from " + senderId + " was put in the usernameRegistry of " + usernameRegistry.get(senderId));
         }
         //client.getLogger().info("username " + updatedUsername + " from " + senderId + " was put in the usernameRegistry of " + username);
-        usernameRegistry.put(senderId, updatedUsername);
+        usernameRegistry.put(senderId, updatedUsername.toLowerCase());
     }
 
     public void createRoom(String roomName, Set<String> participants) {
@@ -140,6 +174,9 @@ public class P2PChatApp {
         System.out.println("Created room " + room.getRoomName() + " with IP " + room.getMulticastIP());
         rooms.put(roomId, room);
         client.sendMessage(new RoomCreationMessage(client.getUUID(), username, roomId, roomName, participants, roomMulticastIP));
+
+        cli.handleInput(new RoomCreated());
+
     }
 
     public void processRoomCreationMessage(RoomCreationMessage message) {
@@ -170,7 +207,8 @@ public class P2PChatApp {
         System.out.println("Added new room: " + room.getRoomName() + " with id " + roomId + " and multicast IP " + room.getMulticastIP());
         //System.out.println("Sockets " + client.getSockets());
 
-        cli.notifyRoomInvite(room);
+        cli.handleInput(new RoomCreated());
+
     }
 
     public void sendMessageInChat(String roomName, String content) {
@@ -198,7 +236,7 @@ public class P2PChatApp {
 
         //sendMessage(message);
 
-
+        cli.handleInput(new RoomMessage(room.getRoomId()));
 
     }
     public void processChatMessage(UUID roomId, ChatMessage message) {
@@ -214,6 +252,7 @@ public class P2PChatApp {
         }
 
         room.receiveMessage(message);
+        cli.handleInput(new RoomMessage(roomId));
 
     }
     public void openRoom(String roomName) {
@@ -223,8 +262,10 @@ public class P2PChatApp {
         //if it is equal, assign the room to the room variable
         for (Room r : rooms.values()) {
             if (r.getRoomName().equals(roomName)) {
-                room = r;
-                room.viewRoomChat();
+                //room = r;
+                //cli.setCurrentRoom(r);
+                cli.setCliState(new InRoomState(r.getRoomId()));
+                //cli.handleInput(CLIInputTypes.ROOM_UPDATE);
                 return;
             }
         }
@@ -291,5 +332,17 @@ public class P2PChatApp {
 
     public List<Room> getRoomsAsList() {
         return new ArrayList<>(rooms.values());
+    }
+
+    public String getProposedUsername() {
+        return proposedUsername;
+    }
+
+    public void setProposedUsername(String proposedUsername) {
+        this.proposedUsername = proposedUsername;
+    }
+
+    public CLI getCli() {
+        return cli;
     }
 }

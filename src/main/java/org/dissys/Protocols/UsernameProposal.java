@@ -23,13 +23,16 @@ public class UsernameProposal {
 
         if(!usernameObjectionReceived){
             app.setUsername(proposedUsername);
+            //System.out.println("set app username to " + app.getUsername());
             sendUsernameUpdate(client, proposedUsername);
         }
         return !usernameObjectionReceived;
     }
     public static void handleUsernameProposal(UsernameProposalMsg proposal, P2PChatApp app) {
         if (proposal.getProposedUsername().equalsIgnoreCase(app.getUsername()) ||
+                proposal.getProposedUsername().equalsIgnoreCase(app.getProposedUsername())||
                 app.getUsernameRegistry().containsValue(proposal.getProposedUsername().toLowerCase())) {
+
             // Send an objection if the proposed username conflicts with our own or another registered username
             UsernameObjectionMsg objection = new UsernameObjectionMsg(app.getClient().getUUID(), proposal.getSenderId());
             app.getClient().sendMessage(objection);

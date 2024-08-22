@@ -60,14 +60,14 @@ public enum ChatCommand implements Command {
     LIST {
         @Override
         public void execute(P2PChatApp chat, String[] args) {
-            Set<String> rooms = chat.getRoomsNames();
+            Map<UUID, Room> rooms = chat.getRooms();
             //Set<String> rooms = chat.getClient().getRoomsIdsAndNames();
             if (rooms.isEmpty()) {
                 System.out.println("No rooms available.");
             } else {
                 System.out.println("Available rooms:");
-                for (String room : rooms) {
-                    System.out.println("- " + room);
+                for (UUID roomId : rooms.keySet()) {
+                    System.out.println("- " + rooms.get(roomId).getRoomName() + " (" + roomId + ")");
                 }
             }
         }

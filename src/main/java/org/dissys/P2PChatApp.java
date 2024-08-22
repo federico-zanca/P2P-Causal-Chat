@@ -285,21 +285,26 @@ public class P2PChatApp {
 
     }
     public void openRoom(String roomName) {
-        Room room;
-        // find room with name roomName in the HashTable<UUID, Room> rooms
-        //iterate over the rooms and check if the roomName is equal to the roomName of the room using getRoomName()
-        //if it is equal, assign the room to the room variable
+        List<Room> candidateRooms = new ArrayList<>();
+
         for (Room r : rooms.values()) {
             if (r.getRoomName().equals(roomName)) {
-                //room = r;
-                //cli.setCurrentRoom(r);
-                cli.setCliState(new InRoomState(r.getRoomId()));
-                //cli.handleInput(CLIInputTypes.ROOM_UPDATE);
-                return;
+                candidateRooms.add(r);
             }
         }
-        //if the room is not found, print "Room not found: " + roomName
-        System.out.println("Room not found: " + roomName);
+
+        if(candidateRooms.isEmpty()){
+            System.out.println("Room not found: " + roomName);
+        } else if (candidateRooms.size() == 1){
+            cli.setCliState(new InRoomState(candidateRooms.getFirst().getRoomId()));
+        } else {
+            System.out.println("Multiple rooms found with name " + roomName + ". Please select one of the following rooms:");
+            for (int i = 0; i < candidateRooms.size(); i++) {
+                System.out.println(i + ". " + candidateRooms.get(i).getRoomName() + "  (" + candidateRooms.get(i).getRoomId() + ")");
+            }
+            int choice = cli.askForRoomChoice(candidateRooms.size());
+            cli.setCliState(new InRoomState(candidateRooms.get(choice).getRoomId()));
+        }
     }
 
     private String generateMulticastIP() {

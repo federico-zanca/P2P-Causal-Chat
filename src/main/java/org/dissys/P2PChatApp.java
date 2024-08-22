@@ -91,7 +91,12 @@ public class P2PChatApp {
                 // Reconnect the room's MulticastSocket
                 try {
                     InetAddress group = InetAddress.getByName(room.getMulticastIP());
-                    MulticastSocket socket = client.connectToGroup(group, client.getPort());
+
+                    System.out.println("Reconnecting to room " + room.getRoomName() + " with IP " + room.getMulticastIP());
+                    System.out.println("Inet address group = " + group);
+
+                    MulticastSocket socket = client.connectToGroup(group, client.getPort(), room.getMulticastIP());
+                    System.out.println("Opened Socket = " + socket);
                     room.reconnect(socket, group);
                 } catch (IOException e) {
                     System.out.println("Failed to reconnect to room " + room.getRoomName() + ": " + e.getMessage());
@@ -160,11 +165,11 @@ public class P2PChatApp {
 
         try {
             InetAddress roomMulticastGroup = InetAddress.getByName(room.getMulticastIP());
-            MulticastSocket roomSocket = client.connectToGroup(roomMulticastGroup, client.getPort());
+            MulticastSocket roomSocket = client.connectToGroup(roomMulticastGroup, client.getPort(), roomMulticastIP);
             room.setRoomMulticastSocket(roomSocket);
             room.setRoomMulticastGroup(roomMulticastGroup);
 
-            client.getSockets().put(roomMulticastIP, roomSocket);
+            //client.getSockets().put(roomMulticastIP, roomSocket);
             //System.out.println("Sockets " + client.getSockets());
         } catch (IOException e){
             throw new RuntimeException("unable to connect to group for room " + room.getRoomId() + room.getRoomName() );
@@ -172,7 +177,7 @@ public class P2PChatApp {
 
         System.out.println("Created room " + room.getRoomName() + " with IP " + room.getMulticastIP());
         rooms.put(roomId, room);
-        client.sendMessage(new RoomCreationMessage(client.getUUID(), username, roomId, roomName, participants, roomMulticastIP));
+        client.sendMessage(new RoomCreationMessage(client.getUUID(), username, roomId, roomName, participants, roomMulticastIP, false));
 
         cli.handleInput(new RoomCreated());
 
@@ -193,19 +198,27 @@ public class P2PChatApp {
         Room room = new Room(roomId, message.getRoomName(), client.getUUID(), message.getParticipants(), message.getMulticastIP());
         try {
             InetAddress roomMulticastGroup = InetAddress.getByName(message.getMulticastIP());
-            MulticastSocket roomSocket = client.connectToGroup(roomMulticastGroup, client.getPort());
+            MulticastSocket roomSocket = client.connectToGroup(roomMulticastGroup, client.getPort(), message.getMulticastIP());
             room.setRoomMulticastSocket(roomSocket);
             room.setRoomMulticastGroup(roomMulticastGroup);
 
-            client.getSockets().put(message.getMulticastIP(), roomSocket);
+            //client.getSockets().put(message.getMulticastIP(), roomSocket);
         } catch (IOException e){
             throw new RuntimeException("unable to connect to group for room " + message.getRoomId() + message.getRoomName() );
         }
         System.out.println("Created room " + room.getRoomName() + " with IP " + room.getMulticastIP());
         rooms.put(roomId, room);
         System.out.println("Added new room: " + room.getRoomName() + " with id " + roomId + " and multicast IP " + room.getMulticastIP());
-        //System.out.println("Sockets " + client.getSockets());
 
+        if (message.isLost()) {
+            // Send a ReconnectionRequestMessage to the room creator
+            ArrayList<Room> oneRoom = new ArrayList<>();
+            oneRoom.add(room);
+            ReconnectionRequestMessage reconnectionRequestMessage = new ReconnectionRequestMessage(client.getUUID(), username, oneRoom);
+            client.sendMessage(reconnectionRequestMessage, room.getRoomMulticastSocket(), room.getRoomMulticastGroup());
+        }
+
+        //System.out.println("Sockets " + client.getSockets());
         cli.handleInput(new RoomCreated());
 
     }
@@ -343,5 +356,12 @@ public class P2PChatApp {
 
     public CLI getCli() {
         return cli;
+    }
+
+    public void printSockets(){
+        Map<String, MulticastSocket> sockets = client.getSockets();
+        for (Map.Entry<String, MulticastSocket> entry : sockets.entrySet()) {
+            System.out.println(entry.getKey() + " " + entry.getValue() + " " + entry.getValue().getInetAddress());
+        }
     }
 }

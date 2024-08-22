@@ -264,7 +264,25 @@ public enum ChatCommand implements Command {
         public String getDescription() {
             return "Delete the log file";
         }
+    },
+
+    SOCKETS {
+        @Override
+        public void execute(P2PChatApp chat, String[] args) {
+            chat.printSockets();
+        }
+
+        @Override
+        public String getUsage() {
+            return "sockets";
+        }
+
+        @Override
+        public String getDescription() {
+            return "Print the sockets of the chat app";
+        }
     };
+
 
         /**
          * executes the command sent by calling the functions in chat

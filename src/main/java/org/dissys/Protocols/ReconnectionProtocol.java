@@ -24,7 +24,8 @@ public class ReconnectionProtocol {
         for(Room room : app.getRoomsValuesAsArrayList()) {
             if(room.getParticipants().contains(message.getSender()) && !requestedRoomsByMessageClocks.containsKey(room.getRoomId())) {
                 // send RoomCreationMessage
-                RoomCreationMessage roomCreationMessage = new RoomCreationMessage(uuid, username, room.getRoomId(), room.getRoomName(), room.getParticipants(), room.getMulticastIP());
+                RoomCreationMessage roomCreationMessage = new RoomCreationMessage(uuid, username, room.getRoomId(), room.getRoomName(), room.getParticipants(), room.getMulticastIP(), true);
+                // TODO may do it after random amount of time
                 app.sendMessage(roomCreationMessage);
             }
         }
@@ -38,11 +39,10 @@ public class ReconnectionProtocol {
                 app.sendMessage(reconnectionRequestMessage);
                 requestedUpdate = true;
             }
-
         }
 
         for ( UUID reqRoomId : requestedRoomsByMessageClocks.keySet()){
-            System.out.println("Retrieving messages for room " + reqRoomId);
+            //System.out.println("Retrieving messages for room " + reqRoomId);
             bundleOfMessagesOtherNeeds = new ArrayList<>();
             roomsToUpdate = new ArrayList<>();
 
@@ -77,7 +77,7 @@ public class ReconnectionProtocol {
                 app.sendMessage(replyMessage);
             }
 
-            // craft ReconnectionRequestMessage for rooms that need to be updated
+            // craft ReconnectionRequestMessage for my rooms that need to be updated
             //TODO may add check if I already requested an update because I found out that I am missing a room
             if(!roomsToUpdate.isEmpty()) {
                 ReconnectionRequestMessage askForUpdateMessage = new ReconnectionRequestMessage(uuid, username, roomsToUpdate);

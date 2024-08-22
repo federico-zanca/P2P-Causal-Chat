@@ -207,6 +207,9 @@ public class Room implements Serializable {
         this.roomMulticastGroup = roomMulticastGroup;
     }
 
+    public InetAddress getRoomMulticastGroup() {
+        return roomMulticastGroup;
+    }
     // When reconnecting, you'll need to recreate the MulticastSocket
     public void reconnect(MulticastSocket socket, InetAddress group) {
         this.roomMulticastSocket = socket;

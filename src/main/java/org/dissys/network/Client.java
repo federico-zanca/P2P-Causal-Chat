@@ -60,9 +60,9 @@ public class Client {
     }
     public void start() throws IOException {
 
-        multicastSocket = connectToGroup(group, PORT);
+        multicastSocket = connectToGroup(group, PORT, MULTICAST_ADDRESS);
 
-        sockets.put(MULTICAST_ADDRESS, multicastSocket);
+        //sockets.put(MULTICAST_ADDRESS, multicastSocket);
 
         // Start listening for peer messages
         new Thread(this::receiveMessages).start();
@@ -84,7 +84,7 @@ public class Client {
     }
 
 
-    public MulticastSocket connectToGroup(InetAddress groupAddress, int port) throws IOException {
+    public MulticastSocket connectToGroup(InetAddress groupAddress, int port, String ip) throws IOException {
 
         MulticastSocket multicastSocket = new MulticastSocket(port);
         networkInterface = findNetworkInterface();
@@ -92,6 +92,7 @@ public class Client {
             throw new IOException("no suitable network interface found");
         }
         multicastSocket.joinGroup(new InetSocketAddress(groupAddress, port), networkInterface);
+        sockets.put(ip, multicastSocket);
         //System.out.println("connected to multicast socket " + MULTICAST_ADDRESS + " with port " + PORT);
         return multicastSocket;
     }

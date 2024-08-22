@@ -71,7 +71,6 @@ public class P2PChatApp {
         }
 
 
-
         cli.start();
 
         // Add shutdown hook to save state when the application exits
@@ -101,7 +100,7 @@ public class P2PChatApp {
             }
             this.usernameRegistry = new ConcurrentHashMap<>(state.getUsernameRegistry());
 
-            retrieveLostMessages();
+
 
         } else {
             this.rooms = new ConcurrentHashMap<>();
@@ -109,7 +108,7 @@ public class P2PChatApp {
         }
     }
 
-    private void retrieveLostMessages(){
+    public void retrieveLostMessages(){
         ReconnectionRequestMessage message = new ReconnectionRequestMessage(this.client.getUUID(), username, new ArrayList<>(rooms.values()));
         sendMessage(message);
     }

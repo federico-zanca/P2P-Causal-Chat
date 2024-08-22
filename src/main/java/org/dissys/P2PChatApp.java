@@ -225,16 +225,26 @@ public class P2PChatApp {
 
     public void sendMessageInChat(String roomName, String content) {
         Room room = null;
+        List<Room> candidateRooms = new ArrayList<>();
         for(Room r: rooms.values()){
             if(r.getRoomName().equals(roomName)){
-                room = r;
-                break;
+                candidateRooms.add(r);
             }
         }
+
         //if the room is not found, print "Room not found: " + roomName
-        if (room == null) {
+        if (candidateRooms.isEmpty()) {
             System.out.println("Room not found: " + roomName);
             return;
+        } else if (candidateRooms.size() == 1){
+            room = candidateRooms.getFirst();
+        } else {
+            System.out.println("Multiple rooms found with name " + roomName + ". Please select one of the following rooms:");
+            for (int i = 0; i < candidateRooms.size(); i++) {
+                System.out.println(i + ". " + candidateRooms.get(i).getRoomName() + "  (" + candidateRooms.get(i).getRoomId() + ")");
+            }
+            int choice = cli.askForRoomChoice(candidateRooms.size());
+            room = candidateRooms.get(choice);
         }
 
 

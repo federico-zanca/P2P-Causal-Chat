@@ -270,4 +270,24 @@ public class CLI {
                 "                                            | |                             \n" +
                 "                                            |_|                             \n", GREEN));
     }
+
+    public int askForRoomChoice(int size) {
+        Scanner scanner = new Scanner(System.in);
+        int choice = -1;
+        while (true) {
+            System.out.print("Enter the number of the room you want to join: ");
+            try {
+                choice = Integer.parseInt(scanner.nextLine());
+                if (choice >= 0 && choice < size) {
+                    break;
+                } else {
+                    System.out.println("Invalid room number. Please enter a number between 0 and " + (size - 1) + ".");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a number.");
+            }
+        }
+
+        return choice;
+    }
 }

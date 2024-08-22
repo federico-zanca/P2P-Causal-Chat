@@ -239,7 +239,7 @@ public enum ChatCommand implements Command {
 
         @Override
         public String getUsage() {
-            return "delete_state";
+            return "reset";
         }
 
         @Override

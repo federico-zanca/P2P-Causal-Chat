@@ -160,6 +160,13 @@ public class P2PChatApp {
         //System.out.println("Now in client.createRoom - Creating room: " + roomName);
         UUID roomId = UUID.randomUUID();
         participants.add(username);
+
+        if(participants.size() == 1){
+            System.out.println("Cannot create a room with only one participant!");
+            return;
+        }
+
+        System.out.println("Participants: " + participants);
         String roomMulticastIP = generateMulticastIP();
         Room room = new Room(roomId, roomName, client.getUUID(), participants, roomMulticastIP);
 

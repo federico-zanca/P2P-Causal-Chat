@@ -153,7 +153,7 @@ public class P2PChatApp {
             client.getLogger().info("username " + updatedUsername + " from " + senderId + " was put in the usernameRegistry of " + usernameRegistry.get(senderId));
         }
         //client.getLogger().info("username " + updatedUsername + " from " + senderId + " was put in the usernameRegistry of " + username);
-        usernameRegistry.put(senderId, updatedUsername.toLowerCase());
+        usernameRegistry.put(senderId, updatedUsername);
     }
 
     public void createRoom(String roomName, Set<String> participants) {
@@ -244,7 +244,7 @@ public class P2PChatApp {
             System.out.println("Room not found: " + roomName);
             return;
         } else if (candidateRooms.size() == 1){
-            room = candidateRooms.getFirst();
+            room = candidateRooms.get(0); //cambiato da .getFirst() a get(0)
         } else {
             System.out.println("Multiple rooms found with name " + roomName + ". Please select one of the following rooms:");
             for (int i = 0; i < candidateRooms.size(); i++) {
@@ -296,7 +296,7 @@ public class P2PChatApp {
         if(candidateRooms.isEmpty()){
             System.out.println("Room not found: " + roomName);
         } else if (candidateRooms.size() == 1){
-            cli.setCliState(new InRoomState(candidateRooms.getFirst().getRoomId()));
+            cli.setCliState(new InRoomState(candidateRooms.get(0).getRoomId())); // cambiato da getFirst a get(0)
         } else {
             System.out.println("Multiple rooms found with name " + roomName + ". Please select one of the following rooms:");
             for (int i = 0; i < candidateRooms.size(); i++) {
@@ -387,3 +387,25 @@ public class P2PChatApp {
         }
     }
 }
+
+
+/*
+    Things to test:
+    Username protocol
+    Message delivery
+    Persistence
+    Reconnection protocol
+    Network partition
+
+    - corretta gestione riconnessioni
+    - ottimizzazioni sul traffico della rete -> magari unicast per recupero messaggi
+    - corretta gestione pacchetti persi
+    - corretta gestione della delete e create (gestione caso in cui il comando non sia ricevuto da tutti gli interessati)
+    TODO
+        random 4 digit code for usernames
+        gossip protocol for updating and converging usernames and maybe rooms
+        conflict resolution
+        delete rooms
+        home command
+
+ */

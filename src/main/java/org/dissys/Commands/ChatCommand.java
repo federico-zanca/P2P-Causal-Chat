@@ -1,6 +1,7 @@
 package org.dissys.Commands;
 
 import org.dissys.CLI.ForegroundColorANSI;
+import org.dissys.CLI.State.InHomeState;
 import org.dissys.P2PChatApp;
 import org.dissys.Room;
 import org.dissys.utils.LoggerConfig;
@@ -33,6 +34,22 @@ public enum ChatCommand implements Command {
         @Override
         public String getDescription() {
             return "Print this help message";
+        }
+    },
+    HOME{
+        @Override
+        public void execute(P2PChatApp chat, String[] args) {
+            chat.getCli().setCliState(new InHomeState());
+        }
+
+        @Override
+        public String getUsage() {
+            return "home";
+        }
+
+        @Override
+        public String getDescription() {
+            return "Return to the home page";
         }
     },
 

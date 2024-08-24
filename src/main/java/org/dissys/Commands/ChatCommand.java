@@ -10,6 +10,7 @@ import org.dissys.utils.PersistenceManager;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.*;
 
 import static org.dissys.CLI.ForegroundColorANSI.*;
@@ -60,6 +61,7 @@ public enum ChatCommand implements Command {
             if(!PersistenceManager.getWillReset()) {
                 PersistenceManager.saveState(chat);
             }
+            chat.getClient().stop();
             System.exit(0);
         }
 
@@ -297,6 +299,44 @@ public enum ChatCommand implements Command {
         @Override
         public String getDescription() {
             return "Print the sockets of the chat app";
+        }
+    },
+    SYSTEM_INFO{
+        @Override
+        public void execute(P2PChatApp chat, String[] args) {
+            String username = chat.getUsername();
+            InetAddress localAddress = chat.getClient().getLocalAddress();
+            int unicastPort = chat.getClient().getUnicastPort();
+            UUID uuid = chat.getClient().getUUID();
+
+            chat.getCli().printSystemInfo(username, localAddress, unicastPort, uuid);
+        }
+
+        @Override
+        public String getUsage() {
+            return "system_info";
+        }
+
+        @Override
+        public String getDescription() {
+            return "prints the username/address/port/uuid of the user";
+        }
+    },
+
+    PEERS{
+        @Override
+        public void execute(P2PChatApp chat, String[] args) {
+            chat.getCli().printPeers(chat.getUsernameRegistry(), chat.getClient().getConnectedPeers());
+        }
+
+        @Override
+        public String getUsage() {
+            return "peers";
+        }
+
+        @Override
+        public String getDescription() {
+            return "Prints the list of connected peers";
         }
     };
 

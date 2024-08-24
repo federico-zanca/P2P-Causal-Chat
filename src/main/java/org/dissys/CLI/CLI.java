@@ -6,13 +6,17 @@ import org.dissys.CLI.State.InHomeState;
 import org.dissys.CLI.State.InRoomState;
 import org.dissys.Commands.ChatCommand;
 
+import java.net.InetAddress;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 import org.dissys.P2PChatApp;
 import org.dissys.Room;
 import org.dissys.messages.ChatMessage;
+import org.dissys.network.PeerInfo;
 import org.dissys.utils.LoggerConfig;
 import static org.dissys.CLI.ForegroundColorANSI.*;
 import static org.dissys.Protocols.UsernameProposal.isValidUsername;
@@ -289,5 +293,26 @@ public class CLI {
         }
 
         return choice;
+    }
+
+    public void printPeers(Map<UUID, String> usernameRegistry, Map<UUID, PeerInfo> connectedPeers) {
+        if(connectedPeers.size() == 0){
+            printWarning("no known peers");
+        }else {
+            System.out.println(colorString("Connected peers: ", BLUE));
+            for (UUID uuid : connectedPeers.keySet()){
+                System.out.println(colorString(" - UUID: ", YELLOW)  + uuid.toString() +
+                        colorString(" IP: ", CYAN)  + connectedPeers.get(uuid).getAddress().toString() +
+                        colorString(" Username: ", GREEN)  + usernameRegistry.get(uuid));
+            }
+        }
+    }
+
+    public void printSystemInfo(String username, InetAddress localAddress, int unicastPort, UUID uuid) {
+        System.out.println(colorString("--System info--", BLUE));
+        System.out.println(colorString(" - Username: " , YELLOW) + username);
+        System.out.println(colorString(" - IP Address: " , YELLOW) + localAddress.toString());
+        System.out.println(colorString(" - Port: " , YELLOW) + unicastPort);
+        System.out.println(colorString(" - UUID: " , YELLOW) + uuid.toString());
     }
 }

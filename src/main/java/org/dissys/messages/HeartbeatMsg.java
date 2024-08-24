@@ -5,22 +5,15 @@ import org.dissys.network.Client;
 import java.util.UUID;
 
 public class HeartbeatMsg extends Message{
-    private String username = null;
-    public HeartbeatMsg(UUID senderId, String username) {
+    public HeartbeatMsg(UUID senderId) {
         super(senderId);
-        this.username = username;
     }
 
     @Override
     public void onMessage(Client client) {
-        client.updatePeerList(getSenderId());
-        if(username != null){
-            client.getApp().updateUsernameRegistry(username, getSenderId());
+        if(client.getConnectedPeers().containsKey(getSenderId())){
+            client.getConnectedPeers().get(getSenderId()).setConnectionTimer(System.currentTimeMillis());
         }
-    }
-
-    public String getUsername() {
-        return username;
     }
 
     @Override

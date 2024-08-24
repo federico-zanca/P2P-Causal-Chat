@@ -3,6 +3,7 @@ package org.dissys;
 import org.dissys.CLI.CLI;
 import org.dissys.CLI.Input.CLIInputTypes;
 import org.dissys.CLI.Input.RoomCreated;
+import org.dissys.CLI.Input.RoomInvitation;
 import org.dissys.CLI.Input.RoomMessage;
 import org.dissys.CLI.State.InRoomState;
 import org.dissys.messages.*;
@@ -226,7 +227,7 @@ public class P2PChatApp {
         }
 
         //System.out.println("Sockets " + client.getSockets());
-        cli.handleInput(new RoomCreated());
+        cli.handleInput(new RoomInvitation());
 
     }
 
@@ -403,9 +404,12 @@ public class P2PChatApp {
     - corretta gestione della delete e create (gestione caso in cui il comando non sia ricevuto da tutti gli interessati)
     TODO
         random 4 digit code for usernames
-        gossip protocol for updating and converging usernames and maybe rooms
-        conflict resolution
+        gossip protocol for updating and converging usernames
+        dht for rooms
+        conflict resolution for usernames
         delete rooms
+
+        DONE
         home command
 
  */

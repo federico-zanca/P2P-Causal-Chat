@@ -6,10 +6,10 @@ import org.dissys.network.PeerInfo;
 import java.net.InetAddress;
 import java.util.UUID;
 
-public class DiscoveryMsg extends Message{
+public class DiscoveryAckMsg extends Message{
     private final InetAddress senderAddress;
     private final int senderPort;
-    public DiscoveryMsg(UUID senderId, InetAddress senderAddress, int senderPort) {
+    public DiscoveryAckMsg(UUID senderId, InetAddress senderAddress, int senderPort) {
         super(senderId);
         this.senderAddress = senderAddress;
         this.senderPort = senderPort;
@@ -18,7 +18,6 @@ public class DiscoveryMsg extends Message{
     @Override
     public void onMessage(Client client) {
         client.getConnectedPeers().put(getSenderId(), new PeerInfo(System.currentTimeMillis(), senderAddress, senderPort));
-        client.sendUnicastMessage(new DiscoveryAckMsg(client.getUUID(), client.getLocalAddress(), client.getUnicastPort()), senderAddress, senderPort);
     }
 
     public InetAddress getSenderAddress() {
@@ -27,6 +26,6 @@ public class DiscoveryMsg extends Message{
 
     @Override
     public String toString() {
-        return "DiscoveryMsg: senderID{" + getSenderId().toString() + "}" ;
+        return "Discovery Ack from " + getSenderId().toString();
     }
 }

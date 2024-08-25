@@ -4,7 +4,7 @@ import org.dissys.network.Client;
 
 import java.util.UUID;
 
-import static org.dissys.Protocols.UsernameProposal.handleUsernameObjection;
+import static org.dissys.Protocols.Username.UsernameProposal.handleUsernameObjection;
 
 public class UsernameObjectionMsg extends Message{
     private final UUID objectionTarget;

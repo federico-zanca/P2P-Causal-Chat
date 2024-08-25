@@ -12,7 +12,7 @@ public class ReconnectionProtocol {
 
     public static void processReconnectionRequestMessage(ReconnectionRequestMessage message, P2PChatApp app) {
         Boolean requestedUpdate = false;
-        String username = app.getUsername();
+        String username = app.getUsername().toString();
         UUID uuid = app.getUUID();
         Map<UUID, VectorClock> requestedRoomsByMessageClocks = message.getRoomsClocks();
         boolean needsUpdate = false;

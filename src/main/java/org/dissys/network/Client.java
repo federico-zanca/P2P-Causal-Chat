@@ -109,12 +109,12 @@ public class Client {
 
     private void sendDiscoveryMessage() {
         DiscoveryMsg discoveryMsg = new DiscoveryMsg(uuid, localAddress, unicastPort);
-        sendMessage(discoveryMsg);
+        sendMulticastMessage(discoveryMsg);
     }
     private void sendPeriodicHeartbeat() {
         while (!Thread.currentThread().isInterrupted()) {
             HeartbeatMsg heartbeatMsg = new HeartbeatMsg(uuid);
-            sendMessage(heartbeatMsg);
+            sendMulticastMessage(heartbeatMsg);
             try {
                 Thread.sleep(HEARTBEAT_INTERVAL);
             } catch (InterruptedException e) {
@@ -123,11 +123,11 @@ public class Client {
         }
     }
 
-    public void sendMessage(Message message){
-        sendMessage(message, this.multicastSocket, this.group);
+    public void sendMulticastMessage(Message message){
+        sendMulticastMessage(message, this.multicastSocket, this.group);
     }
 
-    public void sendMessage(Message message, MulticastSocket socket, InetAddress group) {
+    public void sendMulticastMessage(Message message, MulticastSocket socket, InetAddress group) {
         if(!(message instanceof HeartbeatMsg)){
             //System.out.println("Sending " + message);
             logger.info("Sending " + message + "\nROOMSOCKET= " + socket + "\n");

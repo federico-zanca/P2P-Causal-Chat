@@ -14,12 +14,13 @@ import java.util.UUID;
 import java.util.logging.Logger;
 
 import org.dissys.P2PChatApp;
+import org.dissys.Protocols.Username.Username;
 import org.dissys.Room;
 import org.dissys.messages.ChatMessage;
 import org.dissys.network.PeerInfo;
 import org.dissys.utils.LoggerConfig;
 import static org.dissys.CLI.ForegroundColorANSI.*;
-import static org.dissys.Protocols.UsernameProposal.isValidUsername;
+import static org.dissys.Protocols.Username.UsernameProposal.isValidUsername;
 
 public class CLI {
     private CLIState cliState;
@@ -61,11 +62,11 @@ public class CLI {
     }
 
     private void printWelcome() {
-        System.out.println("Welcome " + colorString(app.getUsername(), assignColorToName(app.getUsername())));
+        System.out.println("Welcome " + colorString(app.getUsername().toString(), assignColorToName(app.getUsername().toString())));
     }
 
 
-    public String askForUsername() {
+    public Username askForUsername() {
         String username = "";
 
         while (true) {
@@ -76,20 +77,11 @@ public class CLI {
             if (isValidUsername(username)) {
                 System.out.println("Checking if the username is already taken...");
                 break;
-                //app.setProposedUsername(username);
-                /*
-                if(app.proposeUsernameToPeers(username)){
-                    System.out.println("Welcome " + username + "!");
-                    break;
-                }else {
-                    app.setProposedUsername(null);
-                    System.out.println("Username taken, retry with a different username");
-                }*/
             } else {
                 System.out.println("Invalid username. It should be non-empty and only contain letters and numbers.");
             }
         }
-        return username;
+        return new Username(username);
     }
     public void setCliState(CLIState state){
         this.cliState = state;
@@ -115,7 +107,7 @@ public class CLI {
         clearConsole();
         //print top row and app name
         printHeader(TITLE, APP_INTERFACE_LENGHT);
-        System.out.println("Username: " + colorString(app.getUsername(), assignColorToName(app.getUsername())));
+        System.out.println("Username: " + colorString(app.getUsername().toString(), assignColorToName(app.getUsername().toString())));
         System.out.println("Number of Rooms: " + app.getRoomsAsList().size());
         //print room list and each room has it's first message abbreviated
         printRoomList();

@@ -1,5 +1,6 @@
 package org.dissys.utils;
 
+import org.dissys.Protocols.Username.Username;
 import org.dissys.Room;
 import org.dissys.VectorClock;
 
@@ -9,7 +10,7 @@ import java.util.*;
 public class AppState implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private final String username;
+    private final Username username;
     private final UUID clientUUID;
     private final List<SerializableRoom> serializedRooms;
     private transient List<Room> rooms; // don't serialize this field
@@ -18,7 +19,7 @@ public class AppState implements Serializable {
     private Map<UUID, VectorClock> roomClocks;
     private LinkedHashMap<UUID, Boolean> processedMessages;
 
-    public AppState(String username, UUID clientUUID, List<SerializableRoom> rooms, Map<UUID, String> usernameRegistry) {
+    public AppState(Username username, UUID clientUUID, List<SerializableRoom> rooms, Map<UUID, String> usernameRegistry) {
         this.username = username;
         this.clientUUID = clientUUID;
         this.serializedRooms = rooms;
@@ -26,7 +27,7 @@ public class AppState implements Serializable {
     }
 
 
-    public String getUsername() {
+    public Username getUsername() {
         return username;
     }
 

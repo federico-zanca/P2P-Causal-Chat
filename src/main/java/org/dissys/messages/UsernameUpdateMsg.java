@@ -1,14 +1,16 @@
 package org.dissys.messages;
 
+import org.dissys.Protocols.Username.Username;
+import org.dissys.Protocols.Username.UsernameProposal;
 import org.dissys.network.Client;
 
 import java.util.UUID;
 
-import static org.dissys.Protocols.UsernameProposal.handleUsernameUpdate;
+import static org.dissys.Protocols.Username.UsernameProposal.handleUsernameUpdate;
 
 public class UsernameUpdateMsg extends Message{
-    private final String updatedUsername;
-    public UsernameUpdateMsg(UUID senderId, String updatedUsername) {
+    private final Username updatedUsername;
+    public UsernameUpdateMsg(UUID senderId, Username updatedUsername) {
         super(senderId);
         this.updatedUsername = updatedUsername;
     }
@@ -18,7 +20,7 @@ public class UsernameUpdateMsg extends Message{
         handleUsernameUpdate(this, client);
     }
 
-    public String getUpdatedUsername() {
+    public Username getUpdatedUsername() {
         return updatedUsername;
     }
 

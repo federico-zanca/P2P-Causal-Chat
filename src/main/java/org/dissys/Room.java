@@ -140,7 +140,7 @@ public class Room implements Serializable {
         VectorClock messageClock = new VectorClock(localClock);
         messageClock.incrementClock(sender);
         ChatMessage message = new ChatMessage(localPeerId, sender, roomId, content, messageClock);
-        client.sendMessage(message, this.roomMulticastSocket, this.roomMulticastGroup);
+        client.sendMulticastMessage(message, this.roomMulticastSocket, this.roomMulticastGroup);
         receiveMessage(message);
     }
 

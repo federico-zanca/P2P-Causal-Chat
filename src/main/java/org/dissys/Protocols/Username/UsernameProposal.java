@@ -1,4 +1,4 @@
-package org.dissys.Protocols;
+package org.dissys.Protocols.Username;
 
 import org.dissys.P2PChatApp;
 import org.dissys.messages.UsernameObjectionMsg;
@@ -6,12 +6,13 @@ import org.dissys.messages.UsernameProposalMsg;
 import org.dissys.messages.UsernameUpdateMsg;
 import org.dissys.network.Client;
 
+import java.util.List;
 import java.util.UUID;
 
 public class UsernameProposal {
-    public static boolean proposeUsername(String proposedUsername, Client client, P2PChatApp app) {
+    public static boolean proposeUsername(Username proposedUsername, Client client, P2PChatApp app) {
         UsernameProposalMsg proposal = new UsernameProposalMsg(client.getUUID(), proposedUsername);
-        client.sendMessage(proposal);
+        client.sendMulticastMessage(proposal);
         // Start a timer to wait for objections
         usernameObjectionReceived = false;
 
@@ -29,14 +30,22 @@ public class UsernameProposal {
         return !usernameObjectionReceived;
     }
     public static void handleUsernameProposal(UsernameProposalMsg proposal, P2PChatApp app) {
-        if (proposal.getProposedUsername().equals(app.getUsername()) ||
-                proposal.getProposedUsername().equals(app.getProposedUsername())||
-                app.getUsernameRegistry().containsValue(proposal.getProposedUsername())) {
-
+        if (conflictFound(app, proposal.getProposedUsername().toString(), proposal.getSenderId())) {
+            
             // Send an objection if the proposed username conflicts with our own or another registered username
             UsernameObjectionMsg objection = new UsernameObjectionMsg(app.getClient().getUUID(), proposal.getSenderId());
-            app.getClient().sendMessage(objection);
+            app.getClient().sendMulticastMessage(objection);
         }
+    }
+    private static boolean conflictFound(P2PChatApp app, String proposedUsername, UUID senderID){
+        return app.getUsername().equals(proposedUsername) ||
+                app.getProposedUsername().equals(proposedUsername) ||
+                otherHomonymsUUIDsFound(app, senderID, proposedUsername);
+    }
+    private static boolean otherHomonymsUUIDsFound(P2PChatApp app, UUID senderID, String username){
+        List<UUID> result = app.getUUIDsMatchedToUsername(username);
+        result.remove(senderID);
+        return !result.isEmpty();
     }
     private static volatile boolean usernameObjectionReceived = false;
 
@@ -45,11 +54,11 @@ public class UsernameProposal {
             usernameObjectionReceived = true;
         }
     }
-    private static void sendUsernameUpdate(Client client, String proposedUsername) {
-        client.sendMessage(new UsernameUpdateMsg(client.getUUID(), proposedUsername));
+    private static void sendUsernameUpdate(Client client, Username proposedUsername) {
+        client.sendMulticastMessage(new UsernameUpdateMsg(client.getUUID(), proposedUsername));
     }
     public static void handleUsernameUpdate(UsernameUpdateMsg usernameUpdateMsg, Client client){
-        client.getApp().updateUsernameRegistry(usernameUpdateMsg.getUpdatedUsername(), usernameUpdateMsg.getSenderId());
+        client.getApp().updateUsernameRegistry(usernameUpdateMsg.getUpdatedUsername().toString(), usernameUpdateMsg.getSenderId());
     }
 
     public static boolean isValidUsername(String username) {

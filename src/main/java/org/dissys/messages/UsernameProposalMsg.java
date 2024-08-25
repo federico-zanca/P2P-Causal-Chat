@@ -1,14 +1,15 @@
 package org.dissys.messages;
 
+import org.dissys.Protocols.Username.Username;
 import org.dissys.network.Client;
 
 import java.util.UUID;
 
-import static org.dissys.Protocols.UsernameProposal.handleUsernameProposal;
+import static org.dissys.Protocols.Username.UsernameProposal.handleUsernameProposal;
 
 public class UsernameProposalMsg extends Message{
-    private final String usernameProposal;
-    public UsernameProposalMsg(UUID senderId, String usernameProposal) {
+    private final Username usernameProposal;
+    public UsernameProposalMsg(UUID senderId, Username usernameProposal) {
         super(senderId);
         this.usernameProposal = usernameProposal;
     }
@@ -22,7 +23,7 @@ public class UsernameProposalMsg extends Message{
         return "Username proposal from " + getSenderId() + " proposing " + usernameProposal;
     }
 
-    public String getProposedUsername() {
+    public Username getProposedUsername() {
         return usernameProposal;
     }
 }

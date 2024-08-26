@@ -96,4 +96,9 @@ public class ReconnectionProtocol {
             client.processMessage(message);
         }
     }
+
+    public static void retrieveLostMessages(P2PChatApp app){
+        ReconnectionRequestMessage message = new ReconnectionRequestMessage(app.getClient().getUUID(), app.getUsername().toString(), new ArrayList<>(app.getRooms().values()));
+        app.sendMessage(message);
+    }
 }

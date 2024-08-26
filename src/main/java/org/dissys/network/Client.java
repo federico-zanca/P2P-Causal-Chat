@@ -82,10 +82,6 @@ public class Client {
         // Send initial discovery message
         sendDiscoveryMessage();
 
-        app.retrieveLostMessages();
-        // Ask if reconnecting, may remove it later when persistence is added
-        //askIfReconnecting();
-
 
     }
 

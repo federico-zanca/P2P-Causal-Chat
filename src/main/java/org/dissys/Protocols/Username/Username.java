@@ -5,10 +5,10 @@ import java.time.Instant;
 import java.util.Random;
 
 public class Username implements Serializable {
-    private final Random random = new Random();
+    private transient final Random random = new Random();
     private static final int CODE_DIGITS = 4;
     private final String name;
-    private final Instant creationTimestamp;
+    private transient final Instant creationTimestamp; // TODO forse è necessario serializzarla
     private final String code;
 
     public Username(String name){

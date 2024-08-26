@@ -20,6 +20,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import static org.dissys.Protocols.ReconnectionProtocol.retrieveLostMessages;
 import static org.dissys.Protocols.Username.UsernameProposal.proposeUsername;
 
 public class P2PChatApp {
@@ -56,18 +57,23 @@ public class P2PChatApp {
         //if a username was never set ask the user to choose one
         if(username == null){
             proposedUsername = cli.askForUsername();
+            try {
+                client.start();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            while (!app.proposeUsernameToPeers(proposedUsername)){
+                cli.printWarning("Username taken, retry with a different username");
+                proposedUsername = cli.askForUsername();
+            }
+        }else {
+            try {
+                client.start();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
-
-        try {
-            client.start();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        while (!app.proposeUsernameToPeers(proposedUsername)){
-            cli.printWarning("Username taken, retry with a different username");
-            proposedUsername = cli.askForUsername();
-        }
-
+        retrieveLostMessages(app);
 
         cli.start();
 
@@ -109,11 +115,6 @@ public class P2PChatApp {
             this.rooms = new ConcurrentHashMap<>();
             this.usernameRegistry = new ConcurrentHashMap<>();
         }
-    }
-
-    public void retrieveLostMessages(){
-        ReconnectionRequestMessage message = new ReconnectionRequestMessage(this.client.getUUID(), username.toString(), new ArrayList<>(rooms.values()));
-        sendMessage(message);
     }
 
     private void setClient(Client client) {

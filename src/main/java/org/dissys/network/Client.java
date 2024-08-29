@@ -1,5 +1,6 @@
 package org.dissys.network;
 import org.dissys.P2PChatApp;
+import org.dissys.Room;
 import org.dissys.messages.*;
 import org.dissys.utils.AppState;
 import org.dissys.utils.LoggerConfig;
@@ -351,6 +352,29 @@ public class Client {
 
     public InetAddress getLocalAddress() {
         return localAddress;
+    }
+
+    public void purgeUnusedSockets() {
+        // iterate over hashmap sockets and delete those that have key (ip) not used by any room
+        Iterator<Map.Entry<String, MulticastSocket>> iterator = sockets.entrySet().iterator();
+        MulticastSocket toBeClosed = null;
+        while (iterator.hasNext()) {
+            Map.Entry<String, MulticastSocket> entry = iterator.next();
+            if(!entry.getKey().equals(MULTICAST_ADDRESS) && findRoomWithIP(entry.getKey())==null){
+                toBeClosed = entry.getValue();
+                iterator.remove();
+                //toBeClosed.close();
+            }
+        }
+    }
+
+    public Room findRoomWithIP(String ip){
+        for (Room room : app.getRoomsAsList()){
+            if(room.getMulticastIP().equals(ip)){
+                return room;
+            }
+        }
+        return null;
     }
 }
 

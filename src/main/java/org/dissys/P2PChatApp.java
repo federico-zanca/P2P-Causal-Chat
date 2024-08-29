@@ -29,12 +29,13 @@ public class P2PChatApp {
     private Client client;
     private CLI cli;
     private Map<UUID, Room> rooms;
-    private Set<UUID> deletedRooms;
+    private final Set<UUID> deletedRooms;
     private Map<UUID, String> usernameRegistry;
     private static Username username = null;
     public P2PChatApp(){
         this.rooms = new ConcurrentHashMap<>();
         this.usernameRegistry = new ConcurrentHashMap<>();
+        this.deletedRooms = new HashSet<>();
     }
 
     public static void main(String[] args){
@@ -73,7 +74,9 @@ public class P2PChatApp {
         if (state != null) {
             P2PChatApp.username = new Username(state.getUsername(), state.getCode()) ;
             System.out.println("2 :" + P2PChatApp.username);
-            this.deletedRooms = state.getDeletedRooms();
+            synchronized (deletedRooms) {
+                deletedRooms.addAll(state.getDeletedRooms());
+            }
             this.rooms = new ConcurrentHashMap<>();
             for (Room room : state.getRooms()) {
                 this.rooms.put(room.getRoomId(), room);
@@ -98,7 +101,6 @@ public class P2PChatApp {
 
         } else {
             this.rooms = new ConcurrentHashMap<>();
-            this.deletedRooms = new HashSet<>();
             this.usernameRegistry = new ConcurrentHashMap<>();
         }
     }
@@ -440,8 +442,10 @@ public class P2PChatApp {
             e.printStackTrace();
         }
         rooms.remove(room.getRoomId());
-        deletedRooms.add(room.getRoomId());
-
+        synchronized (deletedRooms) {
+            deletedRooms.add(room.getRoomId());
+        }
+        client.purgeUnusedSockets();
     }
 
     public Set<UUID> getDeletedRooms() {

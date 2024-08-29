@@ -7,10 +7,7 @@ import org.dissys.CLI.State.InRoomState;
 import org.dissys.Commands.ChatCommand;
 
 import java.net.InetAddress;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Logger;
 
 import org.dissys.P2PChatApp;
@@ -62,7 +59,7 @@ public class CLI {
     }
 
     private void printWelcome() {
-        System.out.println("Welcome " + colorString(app.getUsername().toString(), assignColorToName(app.getUsername().toString())));
+        System.out.println("Welcome " + colorString(app.getStringUsername(), assignColorToName(app.getStringUsername())));
     }
 
 
@@ -306,5 +303,28 @@ public class CLI {
         System.out.println(colorString(" - IP Address: " , YELLOW) + localAddress.toString());
         System.out.println(colorString(" - Port: " , YELLOW) + unicastPort);
         System.out.println(colorString(" - UUID: " , YELLOW) + uuid.toString());
+    }
+
+    public Username askWhenUsernameTaken(Username usernameTaken) {
+        Username newUsername = usernameTaken;
+
+        System.out.println("Change username [1] or change code [2] ?");
+        String input = scanner.nextLine().trim();
+        String[] parts = input.split("\\s+", 2);
+
+        while (!parts[0].equals("1") && !parts[0].equals("2")){
+            printWarning("Wrong input...");
+            System.out.println("Change username [1] or change code [2] ?");
+            input = scanner.nextLine().trim();
+            parts = input.split("\\s+", 2);
+
+            if(parts[0].equals("1")){
+                newUsername = askForUsername();
+            }else if(parts[0].equals("2")){
+                newUsername.changeCode();
+            }
+        }
+
+        return newUsername;
     }
 }

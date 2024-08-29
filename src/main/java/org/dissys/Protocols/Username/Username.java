@@ -5,29 +5,39 @@ import java.time.Instant;
 import java.util.Random;
 
 public class Username implements Serializable {
-    private transient final Random random = new Random();
     private static final int CODE_DIGITS = 4;
     private final String name;
-    private transient final Instant creationTimestamp; // TODO forse è necessario serializzarla
-    private final String code;
+    private String code;
 
     public Username(String name){
         this.name = name;
-        creationTimestamp = Instant.now();
         code = generateRandomCode(CODE_DIGITS);
+    }
+    public Username(String name, String code){
+        this.name = name;
+        this.code = code;
     }
 
     private String generateRandomCode(int digits){
+        Random random = new Random();
         StringBuilder result = new StringBuilder();
         for (int i = 0; i<digits; i++){
             result.append(random.nextInt(10));
         }
         return result.toString();
     }
-
-    public Instant getCreationTimestamp() {
-        return creationTimestamp;
+    public void changeCode(){
+        code = generateRandomCode(CODE_DIGITS);
     }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
     @Override
     public String toString(){
         return name + "#" + code;

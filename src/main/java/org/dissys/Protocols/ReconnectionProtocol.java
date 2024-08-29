@@ -12,7 +12,7 @@ public class ReconnectionProtocol {
 
     public static void processReconnectionRequestMessage(ReconnectionRequestMessage message, P2PChatApp app) {
         Boolean requestedUpdate = false;
-        String username = app.getUsername().toString();
+        String username = app.getStringUsername();
         UUID uuid = app.getUUID();
         Map<UUID, VectorClock> requestedRoomsByMessageClocks = message.getRoomsClocks();
         boolean needsUpdate = false;
@@ -98,7 +98,7 @@ public class ReconnectionProtocol {
     }
 
     public static void retrieveLostMessages(P2PChatApp app){
-        ReconnectionRequestMessage message = new ReconnectionRequestMessage(app.getClient().getUUID(), app.getUsername().toString(), new ArrayList<>(app.getRooms().values()));
+        ReconnectionRequestMessage message = new ReconnectionRequestMessage(app.getClient().getUUID(), app.getStringUsername(), new ArrayList<>(app.getRooms().values()));
         app.sendMessage(message);
     }
 }

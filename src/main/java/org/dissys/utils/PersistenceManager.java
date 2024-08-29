@@ -22,7 +22,8 @@ public class PersistenceManager {
     public static void saveState(P2PChatApp app) {
         try (FileWriter writer = new FileWriter(SAVE_FILE)) {
             AppState state = new AppState(
-                    app.getUsername(),
+                    app.getUsername().getName(),
+                    app.getUsername().getCode(),
                     app.getClient().getUUID(),
                     //app.getRoomsAsList()
                     //TODO guarda se bisogna ripristinare altro

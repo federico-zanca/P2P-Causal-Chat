@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 
 import static org.dissys.Protocols.ReconnectionProtocol.retrieveLostMessages;
 import static org.dissys.Protocols.Username.UsernameProposal.proposeUsername;
+import static org.dissys.Protocols.Username.UsernameProposal.usernameProtocol;
 
 public class P2PChatApp {
     private Client client;
@@ -29,9 +30,6 @@ public class P2PChatApp {
     private Map<UUID, Room> rooms;
     private Map<UUID, String> usernameRegistry;
     private static Username username = null;
-    private static Username proposedUsername = null;
-
-
     public P2PChatApp(){
         this.rooms = new ConcurrentHashMap<>();
         this.usernameRegistry = new ConcurrentHashMap<>();
@@ -46,7 +44,7 @@ public class P2PChatApp {
             throw new RuntimeException(e);
         }
         app.setClient(client);
-
+        System.out.println("1");
         app.initialize();
         CLI cli = new CLI(app);
 
@@ -54,27 +52,10 @@ public class P2PChatApp {
 
         cli.printAsciiArtTitle();
 
-        //if a username was never set ask the user to choose one
-        if(username == null){
-            proposedUsername = cli.askForUsername();
-            try {
-                client.start();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            while (!app.proposeUsernameToPeers(proposedUsername)){
-                cli.printWarning("Username taken, retry with a different username");
-                proposedUsername = cli.askForUsername();
-            }
-        }else {
-            try {
-                client.start();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        retrieveLostMessages(app);
+        usernameProtocol(app);
 
+        retrieveLostMessages(app);
+        System.out.println("3 " + P2PChatApp.username);
         cli.start();
 
         // Add shutdown hook to save state when the application exits
@@ -88,7 +69,8 @@ public class P2PChatApp {
         AppState state = PersistenceManager.loadState();
 
         if (state != null) {
-            this.username = state.getUsername();
+            P2PChatApp.username = new Username(state.getUsername(), state.getCode()) ;
+            System.out.println("2 :" + P2PChatApp.username);
             this.rooms = new ConcurrentHashMap<>();
             for (Room room : state.getRooms()) {
                 this.rooms.put(room.getRoomId(), room);
@@ -134,6 +116,13 @@ public class P2PChatApp {
     public Username getUsername(){
         return username;
     }
+    public String getStringUsername(){
+        if(username == null){
+            return null;
+        }else {
+            return username.toString();
+        }
+    }
     public Map<UUID, String> getUsernameRegistry(){
         return usernameRegistry;
     }
@@ -142,7 +131,7 @@ public class P2PChatApp {
     }
 
     public void setUsername(Username username) {
-        this.username = username;
+        P2PChatApp.username = username;
     }
 
     public void updateUsernameRegistry(String updatedUsername, UUID senderId) {
@@ -158,7 +147,7 @@ public class P2PChatApp {
     public void createRoom(String roomName, Set<String> participants) {
         //System.out.println("Now in client.createRoom - Creating room: " + roomName);
         UUID roomId = UUID.randomUUID();
-        participants.add(username.toString());
+        participants.add(getStringUsername());
 
         if(participants.size() == 1){
             System.out.println("Cannot create a room with only one participant!");
@@ -183,14 +172,14 @@ public class P2PChatApp {
 
         System.out.println("Created room " + room.getRoomName() + " with IP " + room.getMulticastIP());
         rooms.put(roomId, room);
-        client.sendMulticastMessage(new RoomCreationMessage(client.getUUID(), username.toString(), roomId, roomName, participants, roomMulticastIP, false));
+        client.sendMulticastMessage(new RoomCreationMessage(client.getUUID(),getStringUsername(), roomId, roomName, participants, roomMulticastIP, false));
 
         cli.handleInput(new RoomCreated());
 
     }
 
     public void processRoomCreationMessage(RoomCreationMessage message) {
-        if(!message.getParticipants().contains(username)){
+        if(!message.getParticipants().contains(username.toString())){
             //logger.info("Room creation message not for me: " + message);
             System.out.println("Room creation message not for me: " + message);
             return;
@@ -220,7 +209,7 @@ public class P2PChatApp {
             // Send a ReconnectionRequestMessage to the room creator
             ArrayList<Room> oneRoom = new ArrayList<>();
             oneRoom.add(room);
-            ReconnectionRequestMessage reconnectionRequestMessage = new ReconnectionRequestMessage(client.getUUID(), username.toString(), oneRoom);
+            ReconnectionRequestMessage reconnectionRequestMessage = new ReconnectionRequestMessage(client.getUUID(), getStringUsername(), oneRoom);
             client.sendMulticastMessage(reconnectionRequestMessage, room.getRoomMulticastSocket(), room.getRoomMulticastGroup());
         }
 
@@ -254,7 +243,7 @@ public class P2PChatApp {
         }
 
 
-        room.sendChatMessage(client, username.toString(), content);
+        room.sendChatMessage(client, getStringUsername(), content);
         System.out.println("Message sent to " + roomName);
 
         //VectorClock clock = room.getLocalClock();
@@ -379,14 +368,6 @@ public class P2PChatApp {
 
     public List<Room> getRoomsAsList() {
         return new ArrayList<>(rooms.values());
-    }
-
-    public Username getProposedUsername() {
-        return proposedUsername;
-    }
-
-    public void setProposedUsername(Username proposedUsername) {
-        this.proposedUsername = proposedUsername;
     }
 
     public CLI getCli() {

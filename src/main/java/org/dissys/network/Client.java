@@ -109,7 +109,7 @@ public class Client {
     }
     private void sendPeriodicHeartbeat() {
         while (!Thread.currentThread().isInterrupted()) {
-            HeartbeatMsg heartbeatMsg = new HeartbeatMsg(uuid);
+            HeartbeatMsg heartbeatMsg = new HeartbeatMsg(uuid, app.getStringUsername());
             sendMulticastMessage(heartbeatMsg);
             try {
                 Thread.sleep(HEARTBEAT_INTERVAL);

@@ -9,8 +9,8 @@ import java.util.*;
 
 public class AppState implements Serializable {
     private static final long serialVersionUID = 1L;
-
-    private final Username username;
+    private final String username;
+    private final String code;
     private final UUID clientUUID;
     private final List<SerializableRoom> serializedRooms;
     private transient List<Room> rooms; // don't serialize this field
@@ -19,16 +19,20 @@ public class AppState implements Serializable {
     private Map<UUID, VectorClock> roomClocks;
     private LinkedHashMap<UUID, Boolean> processedMessages;
 
-    public AppState(Username username, UUID clientUUID, List<SerializableRoom> rooms, Map<UUID, String> usernameRegistry) {
+    public AppState(String username, String code, UUID clientUUID, List<SerializableRoom> rooms, Map<UUID, String> usernameRegistry) {
         this.username = username;
         this.clientUUID = clientUUID;
         this.serializedRooms = rooms;
         this.usernameRegistry = usernameRegistry;
+        this.code = code;
     }
 
 
-    public Username getUsername() {
+    public String getUsername() {
         return username;
+    }
+    public String getCode(){
+        return code;
     }
 
     public UUID getClientUUID() {

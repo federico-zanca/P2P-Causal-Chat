@@ -28,7 +28,8 @@ public class PersistenceManager {
                     //app.getRoomsAsList()
                     //TODO guarda se bisogna ripristinare altro
                     serializeRooms(app.getRoomsValuesAsArrayList()),
-                    app.getUsernameRegistry()
+                    app.getUsernameRegistry(),
+                    app.getDeletedRooms()
                     /*
                     app.getClient().getConnectedPeers(),
                     app.getClient().getProcessedMessages()

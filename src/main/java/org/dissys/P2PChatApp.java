@@ -73,6 +73,7 @@ public class P2PChatApp {
         if (state != null) {
             P2PChatApp.username = new Username(state.getUsername(), state.getCode()) ;
             System.out.println("2 :" + P2PChatApp.username);
+            this.deletedRooms = state.getDeletedRooms();
             this.rooms = new ConcurrentHashMap<>();
             for (Room room : state.getRooms()) {
                 this.rooms.put(room.getRoomId(), room);
@@ -97,6 +98,7 @@ public class P2PChatApp {
 
         } else {
             this.rooms = new ConcurrentHashMap<>();
+            this.deletedRooms = new HashSet<>();
             this.usernameRegistry = new ConcurrentHashMap<>();
         }
     }
@@ -440,6 +442,10 @@ public class P2PChatApp {
         rooms.remove(room.getRoomId());
         deletedRooms.add(room.getRoomId());
 
+    }
+
+    public Set<UUID> getDeletedRooms() {
+        return deletedRooms;
     }
 }
 

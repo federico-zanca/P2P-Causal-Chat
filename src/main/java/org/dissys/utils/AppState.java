@@ -18,13 +18,15 @@ public class AppState implements Serializable {
     private Map<UUID, Long> connectedPeers;
     private Map<UUID, VectorClock> roomClocks;
     private LinkedHashMap<UUID, Boolean> processedMessages;
+    private Set<UUID> deletedRooms;
 
-    public AppState(String username, String code, UUID clientUUID, List<SerializableRoom> rooms, Map<UUID, String> usernameRegistry) {
+    public AppState(String username, String code, UUID clientUUID, List<SerializableRoom> rooms, Map<UUID, String> usernameRegistry, Set<UUID> deletedRooms) {
         this.username = username;
         this.clientUUID = clientUUID;
         this.serializedRooms = rooms;
         this.usernameRegistry = usernameRegistry;
         this.code = code;
+        this.deletedRooms = deletedRooms;
     }
 
 
@@ -64,4 +66,11 @@ public class AppState implements Serializable {
         return serializedRooms;
     }
 
+    public Set<UUID> getDeletedRooms() {
+        return deletedRooms;
+    }
+
+    public void setDeletedRooms(Set<UUID> deletedRooms) {
+        this.deletedRooms = deletedRooms;
+    }
 }

@@ -16,6 +16,7 @@ import org.dissys.Room;
 import org.dissys.messages.ChatMessage;
 import org.dissys.network.PeerInfo;
 import org.dissys.utils.LoggerConfig;
+
 import static org.dissys.CLI.ForegroundColorANSI.*;
 import static org.dissys.Protocols.Username.UsernameProposal.isValidUsername;
 
@@ -146,21 +147,27 @@ public class CLI {
     }
     private void printRoomList(){
         List<Room> roomList = app.getRoomsAsList();
+        ChatMessage lastMessage;
         for (Room room : roomList){
 
             String lastSender = " ";
             String lastContent = "[No Messages Received Yet]";
 
             if(room.getDeliveredMessages().size() != 0){
-                lastSender = room.getDeliveredMessages().get(room.getDeliveredMessages().size()-1).getSender();
-                lastContent = room.getDeliveredMessages().get(room.getDeliveredMessages().size()-1).getContent();;
+                lastMessage = room.getDeliveredMessages().getLast();
+                if(lastMessage.isFarewell()){
+                    lastContent = colorString(" left the room", RED) ;
+                } else {
+                    lastContent = colorString(lastMessage.getContent(), DARK_GRAY);
+                }
+                lastSender = lastMessage.getSender();
+
             }
 
 
             printBlankRow(1);
 
             lastSender = colorString(lastSender, assignColorToName(lastSender));
-            lastContent = colorString(lastContent, DARK_GRAY);
 
             System.out.println("[" + room.getRoomName() + "] " + lastSender + ": " + lastContent);
 

@@ -126,6 +126,15 @@ public class VectorClock implements Serializable {
         return false;
     }
 
+    public boolean isObsoleteWithRespectTo(VectorClock other){
+        for(String usr : clock.keySet()){
+            if(clock.get(usr) > other.getClock().get(usr)){
+                return false;
+            }
+        }
+        return true;
+    }
+
     @Override
     public String toString(){
         String ret="\n";

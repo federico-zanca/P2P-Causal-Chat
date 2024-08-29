@@ -54,6 +54,9 @@ public class Room implements Serializable {
      * @param message The received message.
      */
     public void receiveMessage(ChatMessage message) {
+        if(message.getVectorClock().isObsoleteWithRespectTo(localClock)) {
+            return;
+        }
         messageBuffer.offer(message);
         processMessages();
         //wait for 2 sec and then print delivered messages and buffered messages
@@ -82,18 +85,29 @@ public class Room implements Serializable {
      */
     private void processMessages() {
         boolean delivered;
+        ChatMessage msg;
         do {
             delivered = false;
             Iterator<ChatMessage> iterator = messageBuffer.iterator();
             while (iterator.hasNext()) {
                 ChatMessage message = iterator.next();
+                if(isAlreadyDelivered(message)) {
+                    iterator.remove();
+                }
                 if (canDeliver(message)) {
                     deliverMessage(message);
+                    msg = message;
                     iterator.remove();
                     delivered = true;
+
                 }
             }
         } while (delivered);
+    }
+
+    boolean isAlreadyDelivered(ChatMessage message) {
+        VectorClock messageClock = message.getVectorClock();
+        return messageClock.isObsoleteWithRespectTo(localClock);
     }
 
     //TODO magari rendere più efficiente processMessages ordinando i messaggi in modo furbo prima di processarli

@@ -21,7 +21,7 @@ public class Room implements Serializable {
     private final String multicastIP;
     private MulticastSocket roomMulticastSocket;
     private InetAddress roomMulticastGroup;
-
+    private final Set<String> pastParticipants;
 
 
     public Room(UUID roomId, String roomName, UUID localPeerId, Set<String> participants, String multicastIP) {
@@ -33,6 +33,7 @@ public class Room implements Serializable {
         this.messageBuffer = new ConcurrentLinkedQueue<>();
         this.deliveredMessages = new ArrayList<>();
         this.multicastIP = multicastIP;
+        this.pastParticipants = new HashSet<>();
     }
 
 
@@ -146,8 +147,14 @@ public class Room implements Serializable {
     private void deliverMessage(ChatMessage message) {
         deliveredMessages.add(message);
         localClock.updateClock(message.getVectorClock().getClock(), message.getSender());
-        // Notify listeners or update UI
-        System.out.println("Delivered message in room " + roomName + ": " + message.getContent() + " from " + message.getSender());
+        if(message.isFarewell()){
+            System.out.println("Delivered message in room " + roomName + ": " + message.getSender() + " left the room");
+            participants.remove(message.getSender());
+            pastParticipants.add(message.getSender());
+        } else {
+            // Notify listeners or update UI
+            System.out.println("Delivered message in room " + roomName + ": " + message.getContent() + " from " + message.getSender());
+        }
     }
 
     public void sendChatMessage(Client client, String sender, String content){
@@ -228,5 +235,9 @@ public class Room implements Serializable {
     public void reconnect(MulticastSocket socket, InetAddress group) {
         this.roomMulticastSocket = socket;
         this.roomMulticastGroup = group;
+    }
+
+    public Set<String> getPastParticipants() {
+        return pastParticipants;
     }
 }

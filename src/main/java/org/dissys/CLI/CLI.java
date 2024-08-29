@@ -200,12 +200,15 @@ public class CLI {
                 break;
             }
 
-            System.out.println(assignColorToName(message.getSender()) +
-                    message.getSender() +
-                    RESET +
-                    ": " +
-                    message.getContent());
-
+            if(message.isFarewell()){  // User left the room message, it has no content
+                System.out.println(assignColorToName(message.getSender()) + message.getSender() + RESET + " left the room");
+            } else {
+                System.out.println(assignColorToName(message.getSender()) +
+                        message.getSender() +
+                        RESET +
+                        ": " +
+                        message.getContent());
+            }
             i++;
         }
         i=0;

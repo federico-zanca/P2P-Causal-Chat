@@ -7,9 +7,10 @@ import java.util.UUID;
 
 public class ChatMessage extends Message {
     private final UUID roomId;
-    private final String content;
+    private String content;
     private final VectorClock vectorClock;
-    private String sender;
+    private final String sender;
+    private boolean farewell;
 
     public ChatMessage(UUID senderId, String sender, UUID roomId, String content, VectorClock vectorClock) {
         super(senderId);
@@ -17,6 +18,15 @@ public class ChatMessage extends Message {
         this.content = content;
         this.vectorClock = vectorClock;
         this.sender = sender;
+        this.farewell = false;
+    }
+
+    public ChatMessage(UUID senderId, String sender, UUID roomId, VectorClock vectorClock, boolean farewell) {
+        super(senderId);
+        this.roomId = roomId;
+        this.vectorClock = vectorClock;
+        this.sender = sender;
+        this.farewell = farewell;
     }
 
     public UUID getRoomId() {
@@ -43,5 +53,9 @@ public class ChatMessage extends Message {
     @Override
     public String toString() {
         return "ChatMessage{roomId='" + roomId + "', content='" + content + "', vectorClock=" + vectorClock + '}';
+    }
+
+    public boolean isFarewell() {
+        return farewell;
     }
 }

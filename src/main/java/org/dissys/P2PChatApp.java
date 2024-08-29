@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.UnknownHostException;
+import java.security.KeyStore;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -28,6 +29,7 @@ public class P2PChatApp {
     private Client client;
     private CLI cli;
     private Map<UUID, Room> rooms;
+    private Set<UUID> deletedRooms;
     private Map<UUID, String> usernameRegistry;
     private static Username username = null;
     public P2PChatApp(){
@@ -266,6 +268,9 @@ public class P2PChatApp {
             //logger.info("Discarding message, room not found: " + roomId);
             System.out.println("Discarding message, room not found: " + roomId);
             return;
+        } else if (deletedRooms.contains(roomId)){
+            System.out.println("Received message in deleted room: " + roomId + room.getRoomName());
+            return;
         }
 
         room.receiveMessage(message);
@@ -379,6 +384,62 @@ public class P2PChatApp {
         for (Map.Entry<String, MulticastSocket> entry : sockets.entrySet()) {
             System.out.println(entry.getKey() + " " + entry.getValue() + " " + entry.getValue().getInetAddress());
         }
+    }
+
+    public void leaveRoom(String roomName) {
+        ChatMessage message;
+        List<Room> candidates = new ArrayList<>();
+        Scanner scanner = new Scanner(System.in);
+        int choice;
+        Room room;
+        int i;
+
+        for (Map.Entry<UUID, Room> r : rooms.entrySet()) {
+            if(r.getValue().getRoomName().equals(roomName)){
+                candidates.add(r.getValue());
+            }
+        }
+
+        if(candidates.isEmpty()){
+            System.out.println("Room not found: " + roomName);
+            return;
+        } else if(candidates.size() >= 2){
+            System.out.println("Multiple rooms found with name " + roomName);
+            System.out.println("Which one do you want to leave?");
+            i = 0;
+            for (Room r : candidates) {
+                System.out.println(i + ". " + r.getRoomName() + " (" + r.getRoomId() + ")");
+                i += 1;
+            }
+
+            // parse integer from string
+            try {
+                choice = Integer.parseInt(scanner.nextLine().trim());
+            } catch(NumberFormatException e){
+                System.out.println("Invalid choice");
+                return;
+            }
+
+            room = candidates.get(choice);
+            if(room == null) {
+                System.out.println("Invalid choice");
+                return;
+            }
+        } else {
+            room = candidates.getFirst();
+        }
+
+        room.getLocalClock().incrementClock(username.toString());
+        message = new ChatMessage(client.getUUID(), username.toString(), room.getRoomId(), room.getLocalClock(), true);
+        client.sendMulticastMessage(message, room.getRoomMulticastSocket(), room.getRoomMulticastGroup());
+        try{
+            Thread.sleep(1000);
+        } catch(InterruptedException e){
+            e.printStackTrace();
+        }
+        rooms.remove(room.getRoomId());
+        deletedRooms.add(room.getRoomId());
+
     }
 }
 

@@ -54,6 +54,24 @@ public enum ChatCommand implements Command {
         }
     },
 
+    LEAVE{
+        @Override
+        public void execute(P2PChatApp app, String[] args) {
+            String roomName = args[0];
+            app.leaveRoom(roomName);
+        }
+
+        @Override
+        public String getUsage() {
+            return "leave <room name>";
+        }
+
+        @Override
+        public String getDescription() {
+            return "Leave a room";
+        }
+    },
+
     EXIT {
         @Override
         public void execute(P2PChatApp chat, String[] args) {

@@ -61,7 +61,7 @@ public enum ChatCommand implements Command {
             if(!PersistenceManager.getWillReset()) {
                 PersistenceManager.saveState(chat);
             }
-            chat.getClient().stop();
+            //chat.getClient().stop();
             System.exit(0);
         }
 

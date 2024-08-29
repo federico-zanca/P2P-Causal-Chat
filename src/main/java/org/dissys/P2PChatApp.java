@@ -445,6 +445,7 @@ public class P2PChatApp {
         synchronized (deletedRooms) {
             deletedRooms.add(room.getRoomId());
         }
+        System.out.println("You left room " + room.getRoomName() + " (" + room.getRoomId() + ")");
         client.purgeUnusedSockets();
     }
 

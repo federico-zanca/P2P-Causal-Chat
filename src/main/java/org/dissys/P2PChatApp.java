@@ -487,6 +487,7 @@ public class P2PChatApp {
         if(!message.getLeavingUser().equals(username.toString()) || deletedRoom == null) {
             return;
         }
+        deletedRooms.remove(message.getRoomId());
         client.closeRoomSocketIfUnused(deletedRoom);
         //deletedRooms.remove(message.getRoomId());
     }

@@ -22,7 +22,7 @@ public class ReconnectionProtocol {
 
         // check if I am in a room in which the requester is, but he doesn't know -> he lost RoomCreationMessage
         for(Room room : app.getRoomsValuesAsArrayList()) {
-            if(room.getParticipants().contains(message.getSender()) && !requestedRoomsByMessageClocks.containsKey(room.getRoomId()) && !message.getDeletedRooms().contains(room.getRoomId())) {
+            if(room.getParticipants().contains(message.getSender()) && !requestedRoomsByMessageClocks.containsKey(room.getRoomId()) && !message.getDeletedRooms().containsKey(room.getRoomId())) {
                 // send RoomCreationMessage
                 RoomCreationMessage roomCreationMessage = new RoomCreationMessage(uuid, username, room.getRoomId(), room.getRoomName(), room.getParticipants(), room.getMulticastIP(), true);
                 // TODO may do it after random amount of time
@@ -33,7 +33,18 @@ public class ReconnectionProtocol {
         //  check if the requester is in a room in which I am, but I don't know -> I lost RoomCreationMessage
         for(Map.Entry<UUID, VectorClock> entry : requestedRoomsByMessageClocks.entrySet()) {
             Room room = app.getRoomByID(entry.getKey());
-            if(room == null && entry.getValue().getClock().containsKey(app.getUsername())){
+
+            // if I left the room, resend leave room message
+            if(app.getDeletedRooms().get(entry.getKey())!=null) {
+                Room deletedRoom = app.getDeletedRooms().get(entry.getKey());
+                ChatMessage lostLeaveRoomMessage = new ChatMessage(uuid, username, deletedRoom.getRoomId(), deletedRoom.getLocalClock(), true);
+                List<Message> lostMessageAsList = new ArrayList<>();
+                lostMessageAsList.add(lostLeaveRoomMessage);
+                ReconnectionReplyMessage leaveRoomReminder = new ReconnectionReplyMessage(uuid, username, lostMessageAsList);
+                app.getClient().sendMulticastMessage(leaveRoomReminder, deletedRoom.getRoomMulticastSocket(), deletedRoom.getRoomMulticastGroup());
+                continue;
+            }
+            else if(room == null && entry.getValue().getClock().containsKey(app.getUsername())){
                 // send ReconnectionRequestMessage
                 ReconnectionRequestMessage reconnectionRequestMessage = new ReconnectionRequestMessage(uuid, username, app.getRoomsValuesAsArrayList(), app.getDeletedRooms());
                 app.sendMessage(reconnectionRequestMessage);

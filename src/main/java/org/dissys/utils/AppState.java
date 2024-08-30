@@ -4,6 +4,7 @@ import org.dissys.Protocols.Username.Username;
 import org.dissys.Room;
 import org.dissys.VectorClock;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 
@@ -18,15 +19,15 @@ public class AppState implements Serializable {
     private Map<UUID, Long> connectedPeers;
     private Map<UUID, VectorClock> roomClocks;
     private LinkedHashMap<UUID, Boolean> processedMessages;
-    private Set<UUID> deletedRooms;
-
-    public AppState(String username, String code, UUID clientUUID, List<SerializableRoom> rooms, Map<UUID, String> usernameRegistry, Set<UUID> deletedRooms) {
+    private List<SerializableRoom> serializedDeletedRooms;
+    private transient List<Room> deletedRooms;
+    public AppState(String username, String code, UUID clientUUID, List<SerializableRoom> rooms, Map<UUID, String> usernameRegistry, List<SerializableRoom> deletedRooms) {
         this.username = username;
         this.clientUUID = clientUUID;
         this.serializedRooms = rooms;
         this.usernameRegistry = usernameRegistry;
         this.code = code;
-        this.deletedRooms = deletedRooms;
+        this.serializedDeletedRooms = deletedRooms;
     }
 
 
@@ -66,11 +67,18 @@ public class AppState implements Serializable {
         return serializedRooms;
     }
 
-    public Set<UUID> getDeletedRooms() {
+
+    public List<Room> getDeletedRooms() {
         return deletedRooms;
     }
 
-    public void setDeletedRooms(Set<UUID> deletedRooms) {
+    public void setDeletedRooms(List<Room> deletedRooms) {
         this.deletedRooms = deletedRooms;
     }
+
+    public List<SerializableRoom> getSerializedDeletedRooms() {
+        return serializedDeletedRooms;
+    }
+
+
 }

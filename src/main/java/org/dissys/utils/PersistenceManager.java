@@ -29,7 +29,7 @@ public class PersistenceManager {
                     //TODO guarda se bisogna ripristinare altro
                     serializeRooms(app.getRoomsValuesAsArrayList()),
                     app.getUsernameRegistry(),
-                    app.getDeletedRooms()
+                    serializeRooms(app.getDeletedRoomsAsList())
                     /*
                     app.getClient().getConnectedPeers(),
                     app.getClient().getProcessedMessages()
@@ -52,6 +52,7 @@ public class PersistenceManager {
         try (FileReader reader = new FileReader(SAVE_FILE)) {
             AppState state = gson.fromJson(reader, AppState.class);
             state.setRooms(deserializeRooms(state.getSerializedRooms()));
+            state.setDeletedRooms(deserializeRooms(state.getSerializedDeletedRooms()));
             logger.info("Application state loaded successfully.");
             return state;
         } catch (IOException e) {

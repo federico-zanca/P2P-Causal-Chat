@@ -29,13 +29,13 @@ public class P2PChatApp {
     private Client client;
     private CLI cli;
     private Map<UUID, Room> rooms;
-    private final Set<UUID> deletedRooms;
+    private final Map<UUID, Room> deletedRooms;
     private Map<UUID, String> usernameRegistry;
     private static Username username = null;
     public P2PChatApp(){
         this.rooms = new ConcurrentHashMap<>();
         this.usernameRegistry = new ConcurrentHashMap<>();
-        this.deletedRooms = new HashSet<>();
+        this.deletedRooms = new ConcurrentHashMap<>();
     }
 
     public static void main(String[] args){
@@ -75,7 +75,24 @@ public class P2PChatApp {
             P2PChatApp.username = new Username(state.getUsername(), state.getCode()) ;
             System.out.println("2 :" + P2PChatApp.username);
             synchronized (deletedRooms) {
-                deletedRooms.addAll(state.getDeletedRooms());
+                //deletedRooms.addAll(state.getDeletedRooms());
+                for (Room delRoom : state.getDeletedRooms()){
+                    this.deletedRooms.put(delRoom.getRoomId(), delRoom);
+                    // Reconnect the room's MulticastSocket
+                    try {
+                        InetAddress group = InetAddress.getByName(delRoom.getMulticastIP());
+
+                        System.out.println("Reconnecting to room " + delRoom.getRoomName() + " with IP " + delRoom.getMulticastIP() + " (room is deleted but nobody knows yet)");
+                        System.out.println("Inet address group = " + group);
+
+                        MulticastSocket socket = client.connectToGroup(group, client.getPort(), delRoom.getMulticastIP());
+                        System.out.println("Opened Socket = " + socket);
+                        delRoom.reconnect(socket, group);
+                    } catch (IOException e) {
+                        System.out.println("Failed to reconnect to room " + delRoom.getRoomName() + ": " + e.getMessage());
+                    }
+                    // The client UUID will be set when the Client is created
+                }
             }
             this.rooms = new ConcurrentHashMap<>();
             for (Room room : state.getRooms()) {
@@ -191,8 +208,10 @@ public class P2PChatApp {
             return;
         }
         UUID roomId = message.getRoomId();
-        if(deletedRooms.contains(roomId)){
-            // TODO resend leave room message with vector clock
+        if(deletedRooms.get(roomId)!=null){
+            Room deletedRoom = deletedRooms.get(roomId);
+            ChatMessage leaveRoomReminder = new ChatMessage(client.getUUID(), username.toString(), deletedRoom.getRoomId(), deletedRoom.getLocalClock(), true);
+            client.sendMulticastMessage(leaveRoomReminder, deletedRoom.getRoomMulticastSocket(), deletedRoom.getRoomMulticastGroup());
             return;
         }
         if(rooms.containsKey(roomId)){
@@ -275,7 +294,7 @@ public class P2PChatApp {
             //logger.info("Discarding message, room not found: " + roomId);
             System.out.println("Discarding message, room not found: " + roomId);
             return;
-        } else if (deletedRooms.contains(roomId)){
+        } else if (deletedRooms.get(roomId)!=null){
             System.out.println("Received message in deleted room: " + roomId + room.getRoomName());
             return;
         }
@@ -450,20 +469,25 @@ public class P2PChatApp {
         }
         rooms.remove(room.getRoomId());
         synchronized (deletedRooms) {
-            deletedRooms.add(room.getRoomId());
+            deletedRooms.put(room.getRoomId(), room);
         }
         System.out.println("You left room " + room.getRoomName() + " (" + room.getRoomId() + ")");
     }
 
-    public Set<UUID> getDeletedRooms() {
+    public Map<UUID, Room> getDeletedRooms() {
         return deletedRooms;
     }
 
+    public List<Room> getDeletedRoomsAsList(){
+        return new ArrayList<>(deletedRooms.values());
+    }
+
     public void processLeaveRoomACK(LeaveRoomACK message) {
-        if(!message.getLeavingUser().equals(username.toString()) || !deletedRooms.contains(message.getRoomId())) {
+        Room deletedRoom = deletedRooms.get(message.getRoomId());
+        if(!message.getLeavingUser().equals(username.toString()) || deletedRoom == null) {
             return;
         }
-        client.purgeUnusedSockets();
+        client.closeRoomSocketIfUnused(deletedRoom);
         //deletedRooms.remove(message.getRoomId());
     }
 }

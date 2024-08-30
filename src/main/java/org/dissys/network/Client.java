@@ -354,6 +354,7 @@ public class Client {
         return localAddress;
     }
 
+    /*
     public void purgeUnusedSockets() {
         // iterate over hashmap sockets and delete those that have key (ip) not used by any room
         Iterator<Map.Entry<String, MulticastSocket>> iterator = sockets.entrySet().iterator();
@@ -367,14 +368,34 @@ public class Client {
             }
         }
     }
+    */
 
-    public Room findRoomWithIP(String ip){
+    public boolean isIPUnusedByOtherRooms(String ip, Room deletedRoom){
+        //List<Room> targetRooms = new ArrayList<>();
         for (Room room : app.getRoomsAsList()){
             if(room.getMulticastIP().equals(ip)){
-                return room;
+                return false;
             }
         }
-        return null;
+        for (Room room : app.getDeletedRoomsAsList()){
+            if(room.getMulticastIP().equals(ip) && !room.getRoomId().equals(deletedRoom.getRoomId())){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void closeRoomSocketIfUnused(Room deletedRoom) {
+        Iterator<Map.Entry<String, MulticastSocket>> iterator = sockets.entrySet().iterator();
+        MulticastSocket toBeClosed = null;
+        while (iterator.hasNext()) {
+            Map.Entry<String, MulticastSocket> entry = iterator.next();
+            if(!entry.getKey().equals(MULTICAST_ADDRESS) && isIPUnusedByOtherRooms(entry.getKey(), deletedRoom)){
+                toBeClosed = entry.getValue();
+                iterator.remove();
+                toBeClosed.close();
+            }
+        }
     }
 }
 

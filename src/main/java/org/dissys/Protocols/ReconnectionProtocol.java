@@ -27,6 +27,8 @@ public class ReconnectionProtocol {
             if(myVersionOfRoom != null && myVersionOfRoom.getParticipants().contains(message.getSender())){
                 ChatMessage leftRoomReplica = new ChatMessage(message.getSenderId(), message.getSender(), delRoomId, message.getDeletedRooms().get(delRoomId), true);
                 app.getClient().sendMulticastMessage(leftRoomReplica, myVersionOfRoom.getRoomMulticastSocket(), myVersionOfRoom.getRoomMulticastGroup());
+                LeaveRoomACK ack = new LeaveRoomACK(app.getClient().getUUID(), delRoomId, message.getSender());
+                app.getClient().sendMulticastMessage(ack, myVersionOfRoom.getRoomMulticastSocket(), myVersionOfRoom.getRoomMulticastGroup());
             }
         }
 

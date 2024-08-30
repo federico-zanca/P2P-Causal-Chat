@@ -6,6 +6,7 @@ import org.dissys.VectorClock;
 import org.dissys.messages.*;
 import org.dissys.network.Client;
 
+import java.security.KeyStore;
 import java.util.*;
 
 public class ReconnectionProtocol {
@@ -19,6 +20,15 @@ public class ReconnectionProtocol {
         List<Message> bundleOfMessagesOtherNeeds = null;
         List<Room> roomsToUpdate = null;
         VectorClock localRoomClock = null;
+
+        // check if the sender left a room but I don't know
+        for (UUID delRoomId : message.getDeletedRooms().keySet()){
+            Room myVersionOfRoom = app.getRooms().get(delRoomId);
+            if(myVersionOfRoom != null && myVersionOfRoom.getParticipants().contains(message.getSender())){
+                ChatMessage leftRoomReplica = new ChatMessage(message.getSenderId(), message.getSender(), delRoomId, message.getDeletedRooms().get(delRoomId), true);
+                app.getClient().sendMulticastMessage(leftRoomReplica, myVersionOfRoom.getRoomMulticastSocket(), myVersionOfRoom.getRoomMulticastGroup());
+            }
+        }
 
         // check if I am in a room in which the requester is, but he doesn't know -> he lost RoomCreationMessage
         for(Room room : app.getRoomsValuesAsArrayList()) {

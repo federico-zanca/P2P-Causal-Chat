@@ -11,7 +11,7 @@ import java.util.*;
 public class ReconnectionProtocol {
 
     public static void processReconnectionRequestMessage(ReconnectionRequestMessage message, P2PChatApp app) {
-        Boolean requestedUpdate = false;
+        boolean requestedUpdate = false;
         String username = app.getStringUsername();
         UUID uuid = app.getUUID();
         Map<UUID, VectorClock> requestedRoomsByMessageClocks = message.getRoomsClocks();
@@ -22,7 +22,7 @@ public class ReconnectionProtocol {
 
         // check if I am in a room in which the requester is, but he doesn't know -> he lost RoomCreationMessage
         for(Room room : app.getRoomsValuesAsArrayList()) {
-            if(room.getParticipants().contains(message.getSender()) && !requestedRoomsByMessageClocks.containsKey(room.getRoomId())) {
+            if(room.getParticipants().contains(message.getSender()) && !requestedRoomsByMessageClocks.containsKey(room.getRoomId()) && !message.getDeletedRooms().contains(room.getRoomId())) {
                 // send RoomCreationMessage
                 RoomCreationMessage roomCreationMessage = new RoomCreationMessage(uuid, username, room.getRoomId(), room.getRoomName(), room.getParticipants(), room.getMulticastIP(), true);
                 // TODO may do it after random amount of time
@@ -35,7 +35,7 @@ public class ReconnectionProtocol {
             Room room = app.getRoomByID(entry.getKey());
             if(room == null && entry.getValue().getClock().containsKey(app.getUsername())){
                 // send ReconnectionRequestMessage
-                ReconnectionRequestMessage reconnectionRequestMessage = new ReconnectionRequestMessage(uuid, username, app.getRoomsValuesAsArrayList());
+                ReconnectionRequestMessage reconnectionRequestMessage = new ReconnectionRequestMessage(uuid, username, app.getRoomsValuesAsArrayList(), app.getDeletedRooms());
                 app.sendMessage(reconnectionRequestMessage);
                 requestedUpdate = true;
             }
@@ -80,7 +80,7 @@ public class ReconnectionProtocol {
             // craft ReconnectionRequestMessage for my rooms that need to be updated
             //TODO may add check if I already requested an update because I found out that I am missing a room
             if(!roomsToUpdate.isEmpty()) {
-                ReconnectionRequestMessage askForUpdateMessage = new ReconnectionRequestMessage(uuid, username, roomsToUpdate);
+                ReconnectionRequestMessage askForUpdateMessage = new ReconnectionRequestMessage(uuid, username, roomsToUpdate, app.getDeletedRooms());
                 app.sendMessage(askForUpdateMessage);
             }
         }
@@ -98,7 +98,7 @@ public class ReconnectionProtocol {
     }
 
     public static void retrieveLostMessages(P2PChatApp app){
-        ReconnectionRequestMessage message = new ReconnectionRequestMessage(app.getClient().getUUID(), app.getStringUsername(), new ArrayList<>(app.getRooms().values()));
+        ReconnectionRequestMessage message = new ReconnectionRequestMessage(app.getClient().getUUID(), app.getStringUsername(), new ArrayList<>(app.getRooms().values()), app.getDeletedRooms());
         app.sendMessage(message);
     }
 }

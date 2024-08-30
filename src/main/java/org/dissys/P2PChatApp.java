@@ -191,7 +191,10 @@ public class P2PChatApp {
             return;
         }
         UUID roomId = message.getRoomId();
-
+        if(deletedRooms.contains(roomId)){
+            // TODO resend leave room message with vector clock
+            return;
+        }
         if(rooms.containsKey(roomId)){
             System.out.println("Room already exists: " + roomId);
             return;
@@ -215,7 +218,7 @@ public class P2PChatApp {
             // Send a ReconnectionRequestMessage to the room creator
             ArrayList<Room> oneRoom = new ArrayList<>();
             oneRoom.add(room);
-            ReconnectionRequestMessage reconnectionRequestMessage = new ReconnectionRequestMessage(client.getUUID(), getStringUsername(), oneRoom);
+            ReconnectionRequestMessage reconnectionRequestMessage = new ReconnectionRequestMessage(client.getUUID(), getStringUsername(), oneRoom, deletedRooms);
             client.sendMulticastMessage(reconnectionRequestMessage, room.getRoomMulticastSocket(), room.getRoomMulticastGroup());
         }
 
@@ -278,6 +281,10 @@ public class P2PChatApp {
         }
 
         room.receiveMessage(message);
+        if(message.isFarewell()){
+            LeaveRoomACK ack = new LeaveRoomACK(client.getUUID(), room.getRoomId(), message.getSender());
+            client.sendMulticastMessage(ack, room.getRoomMulticastSocket(), room.getRoomMulticastGroup());
+        }
         cli.handleInput(new RoomMessage(roomId));
 
     }
@@ -446,11 +453,18 @@ public class P2PChatApp {
             deletedRooms.add(room.getRoomId());
         }
         System.out.println("You left room " + room.getRoomName() + " (" + room.getRoomId() + ")");
-        client.purgeUnusedSockets();
     }
 
     public Set<UUID> getDeletedRooms() {
         return deletedRooms;
+    }
+
+    public void processLeaveRoomACK(LeaveRoomACK message) {
+        if(!message.getLeavingUser().equals(username.toString()) || !deletedRooms.contains(message.getRoomId())) {
+            return;
+        }
+        client.purgeUnusedSockets();
+        //deletedRooms.remove(message.getRoomId());
     }
 }
 

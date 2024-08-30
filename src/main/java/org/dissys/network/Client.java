@@ -363,7 +363,7 @@ public class Client {
             if(!entry.getKey().equals(MULTICAST_ADDRESS) && findRoomWithIP(entry.getKey())==null){
                 toBeClosed = entry.getValue();
                 iterator.remove();
-                //toBeClosed.close();
+                toBeClosed.close();
             }
         }
     }

@@ -1,6 +1,7 @@
 package org.dissys;
 
 import org.dissys.messages.ChatMessage;
+import org.dissys.messages.LeaveRoomACK;
 import org.dissys.network.Client;
 
 
@@ -9,6 +10,7 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
 
 public class Room implements Serializable {
     private final UUID roomId;

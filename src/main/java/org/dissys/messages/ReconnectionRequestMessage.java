@@ -4,18 +4,16 @@ import org.dissys.Room;
 import org.dissys.VectorClock;
 import org.dissys.network.Client;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static org.dissys.Protocols.ReconnectionProtocol.processReconnectionRequestMessage;
 
 public class ReconnectionRequestMessage extends Message {
     private final Map<UUID, VectorClock> roomsClocks;
     private final String sender;
+    private final Set<UUID> deletedRooms;
 
-    public ReconnectionRequestMessage(UUID senderId, String sender, List<Room> rooms) {
+    public ReconnectionRequestMessage(UUID senderId, String sender, List<Room> rooms, Set<UUID> deletedRooms) {
         super(senderId);
         this.sender = sender;
         Map<UUID, VectorClock> roomsClocks = new HashMap<>();
@@ -23,6 +21,7 @@ public class ReconnectionRequestMessage extends Message {
             roomsClocks.put(room.getRoomId(), room.getLocalClock());
         }
         this.roomsClocks = roomsClocks;
+        this.deletedRooms = deletedRooms;
     }
 
     public Map<UUID, VectorClock> getRoomsClocks() {
@@ -41,5 +40,9 @@ public class ReconnectionRequestMessage extends Message {
 
     public String getSender() {
         return sender;
+    }
+
+    public Set<UUID> getDeletedRooms() {
+        return deletedRooms;
     }
 }

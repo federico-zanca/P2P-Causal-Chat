@@ -120,6 +120,32 @@ public enum ChatCommand implements Command {
         }
     },
 
+    PAST_ROOMS{
+        @Override
+        public void execute(P2PChatApp chat, String[] args) {
+            Map<UUID, Room> deleted = chat.getDeletedRooms();
+
+            if(deleted.isEmpty()) {
+                System.out.println("It's all empty here...");
+            } else {
+                System.out.println("Deleted rooms:");
+                for (UUID roomId : deleted.keySet()) {
+                    System.out.println("- " + deleted.get(roomId).getRoomName() + " (" + roomId + ")");
+                }
+            }
+        }
+
+        @Override
+        public String getUsage() {
+            return "past_rooms";
+        }
+
+        @Override
+        public String getDescription() {
+            return "List the rooms you left but other participants don't know yet ";
+        }
+    },
+
     OPEN{
         @Override
         public void execute(P2PChatApp chat, String[] args) {

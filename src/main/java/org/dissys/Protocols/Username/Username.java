@@ -18,14 +18,19 @@ public class Username implements Serializable {
         this.code = code;
     }
 
-    private String generateRandomCode(int digits){
+    private String generateRandomCode(int length) {
         Random random = new Random();
         StringBuilder result = new StringBuilder();
-        for (int i = 0; i<digits; i++){
-            result.append(random.nextInt(10));
+        String characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+        for (int i = 0; i < length; i++) {
+            int index = random.nextInt(characters.length());
+            result.append(characters.charAt(index));
         }
+
         return result.toString();
     }
+
     public void changeCode(){
         code = generateRandomCode(CODE_DIGITS);
     }

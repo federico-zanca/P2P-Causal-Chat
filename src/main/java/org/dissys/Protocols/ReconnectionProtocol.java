@@ -6,7 +6,6 @@ import org.dissys.VectorClock;
 import org.dissys.messages.*;
 import org.dissys.network.Client;
 
-import java.security.KeyStore;
 import java.util.*;
 
 public class ReconnectionProtocol {
@@ -22,6 +21,7 @@ public class ReconnectionProtocol {
         VectorClock localRoomClock = null;
 
         // check if the sender left a room but I don't know
+        // TODO wait random amount of time before sending
         for (UUID delRoomId : message.getDeletedRooms().keySet()){
             Room myVersionOfRoom = app.getRooms().get(delRoomId);
             if(myVersionOfRoom != null && myVersionOfRoom.getParticipants().contains(message.getSender())){
@@ -47,6 +47,7 @@ public class ReconnectionProtocol {
             Room room = app.getRoomByID(entry.getKey());
 
             // if I left the room, resend leave room message
+            /*
             if(app.getDeletedRooms().get(entry.getKey())!=null) {
                 Room deletedRoom = app.getDeletedRooms().get(entry.getKey());
                 ChatMessage lostLeaveRoomMessage = new ChatMessage(uuid, username, deletedRoom.getRoomId(), deletedRoom.getLocalClock(), true);
@@ -56,10 +57,19 @@ public class ReconnectionProtocol {
                 app.getClient().sendMulticastMessage(leaveRoomReminder, deletedRoom.getRoomMulticastSocket(), deletedRoom.getRoomMulticastGroup());
                 continue;
             }
-            else if(room == null && entry.getValue().getClock().containsKey(app.getUsername())){
+
+
+            else
+            */
+            if(room == null && entry.getValue().getClock().containsKey(app.getStringUsername())){
+                needsUpdate = true;
                 // send ReconnectionRequestMessage
+                // TODO maybe optimize, sending ReconnectionMessage in a loop. May want to send just one after the loop
+                /*
                 ReconnectionRequestMessage reconnectionRequestMessage = new ReconnectionRequestMessage(uuid, username, app.getRoomsValuesAsArrayList(), app.getDeletedRooms());
                 app.sendMessage(reconnectionRequestMessage);
+
+                 */
                 requestedUpdate = true;
             }
         }
@@ -67,9 +77,13 @@ public class ReconnectionProtocol {
         for ( UUID reqRoomId : requestedRoomsByMessageClocks.keySet()){
             //System.out.println("Retrieving messages for room " + reqRoomId);
             bundleOfMessagesOtherNeeds = new ArrayList<>();
+
+            /*
             roomsToUpdate = new ArrayList<>();
 
             needsUpdate = false;
+
+             */
             Room reqRoom = app.getRoomByID(reqRoomId);
 
             if(reqRoom == null) {
@@ -89,25 +103,35 @@ public class ReconnectionProtocol {
             }
 
             //TODO may add check if I already requested an update because I found out that I am missing a room
+            /*
             if(needsUpdate) {
                 roomsToUpdate.add(reqRoom);
             }
+
+             */
 
             // send missing messages to requesting peer
             // TODO : do it after random amount of time and check if anyone else already sent it before sending
             if(!bundleOfMessagesOtherNeeds.isEmpty()) {
                 ReconnectionReplyMessage replyMessage = new ReconnectionReplyMessage(uuid, username, bundleOfMessagesOtherNeeds);
-                app.sendMessage(replyMessage);
+                app.getClient().sendMulticastMessage(replyMessage, reqRoom.getRoomMulticastSocket(), reqRoom.getRoomMulticastGroup());
             }
 
             // craft ReconnectionRequestMessage for my rooms that need to be updated
+            /*
             //TODO may add check if I already requested an update because I found out that I am missing a room
             if(!roomsToUpdate.isEmpty()) {
                 ReconnectionRequestMessage askForUpdateMessage = new ReconnectionRequestMessage(uuid, username, roomsToUpdate, app.getDeletedRooms());
                 app.sendMessage(askForUpdateMessage);
             }
+
+             */
         }
 
+        if(needsUpdate){
+            ReconnectionRequestMessage askForUpdateMessage = new ReconnectionRequestMessage(uuid, username, app.getRoomsAsList(), app.getDeletedRooms());
+            app.sendMessage(askForUpdateMessage);
+        }
 
 
 

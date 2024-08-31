@@ -24,7 +24,7 @@ public class Room implements Serializable {
     private MulticastSocket roomMulticastSocket;
     private InetAddress roomMulticastGroup;
     private final Set<String> pastParticipants;
-
+    private boolean acknowledgedDeleted;
 
     public Room(UUID roomId, String roomName, UUID localPeerId, Set<String> participants, String multicastIP) {
         this.roomId = roomId;
@@ -36,6 +36,7 @@ public class Room implements Serializable {
         this.deliveredMessages = new ArrayList<>();
         this.multicastIP = multicastIP;
         this.pastParticipants = new HashSet<>();
+        this.acknowledgedDeleted = false;
     }
 
 
@@ -241,5 +242,13 @@ public class Room implements Serializable {
 
     public Set<String> getPastParticipants() {
         return pastParticipants;
+    }
+
+    public boolean isAcknowledgedDeleted() {
+        return acknowledgedDeleted;
+    }
+
+    public void setAcknowledgedDeleted(boolean acknowledgedDeleted) {
+        this.acknowledgedDeleted = acknowledgedDeleted;
     }
 }

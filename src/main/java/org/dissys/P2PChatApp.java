@@ -6,7 +6,6 @@ import org.dissys.CLI.Input.RoomInvitation;
 import org.dissys.CLI.Input.RoomMessage;
 import org.dissys.CLI.State.InRoomState;
 import org.dissys.Protocols.Username.Username;
-import org.dissys.Protocols.Username.UsernameProposal;
 import org.dissys.messages.*;
 import org.dissys.network.Client;
 import org.dissys.utils.AppState;
@@ -16,7 +15,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.UnknownHostException;
-import java.security.KeyStore;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -36,6 +34,7 @@ public class P2PChatApp {
         this.rooms = new ConcurrentHashMap<>();
         this.usernameRegistry = new ConcurrentHashMap<>();
         this.deletedRooms = new ConcurrentHashMap<>();
+        //this.ackDeletedRooms = new ConcurrentHashMap<>();
     }
 
     public static void main(String[] args){
@@ -94,6 +93,14 @@ public class P2PChatApp {
                     // The client UUID will be set when the Client is created
                 }
             }
+            /*
+            synchronized (ackDeletedRooms){
+                for (Room delRoom : state.getAckDeletedRooms()){
+                    this.ackDeletedRooms.put(delRoom.getRoomId(), delRoom);
+                    // no need to open sockets here
+                }
+            }
+            */
             this.rooms = new ConcurrentHashMap<>();
             for (Room room : state.getRooms()) {
                 this.rooms.put(room.getRoomId(), room);
@@ -209,11 +216,24 @@ public class P2PChatApp {
         }
         UUID roomId = message.getRoomId();
         if(deletedRooms.get(roomId)!=null){
+            if(deletedRooms.get(roomId).isAcknowledgedDeleted()){
+                client.getLogger().info("Discarded Message for ACKDeletedRoom " + message);
+                //TODO send leave room reminder in unicast? not really necessary
+                return;
+                }
             Room deletedRoom = deletedRooms.get(roomId);
             ChatMessage leaveRoomReminder = new ChatMessage(client.getUUID(), username.toString(), deletedRoom.getRoomId(), deletedRoom.getLocalClock(), true);
             client.sendMulticastMessage(leaveRoomReminder, deletedRoom.getRoomMulticastSocket(), deletedRoom.getRoomMulticastGroup());
             return;
         }
+        /*
+        else if(ackDeletedRooms.get(roomId)!=null){
+            client.getLogger().info("Discarded Message for ACKDeletedRoom " + message);
+            //TODO send leave room reminder in unicast? not really necessary
+            return;
+        }
+
+         */
         if(rooms.containsKey(roomId)){
             System.out.println("Room already exists: " + roomId);
             return;
@@ -487,10 +507,21 @@ public class P2PChatApp {
         if(!message.getLeavingUser().equals(username.toString()) || deletedRoom == null) {
             return;
         }
-        deletedRooms.remove(message.getRoomId());
+        //ackDeletedRooms.put(deletedRoom.getRoomId(), deletedRoom);
+        deletedRoom.setAcknowledgedDeleted(true);
         client.closeRoomSocketIfUnused(deletedRoom);
         //deletedRooms.remove(message.getRoomId());
     }
+    /*
+    public Map<UUID, Room> getAckDeletedRooms() {
+        return ackDeletedRooms;
+    }
+
+    public List<Room> getAcknowledgedDeletedRoomsAsList(){
+        return new ArrayList<>(ackDeletedRooms.values());
+    }
+
+     */
 }
 
 

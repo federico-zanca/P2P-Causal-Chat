@@ -10,11 +10,13 @@ import static org.dissys.Protocols.ReconnectionProtocol.processReconnectionReply
 public class ReconnectionReplyMessage extends Message {
     private final String sender;
     private final List<Message> lostMessages;
+    private final String interestedUser;
 
-    public ReconnectionReplyMessage(UUID senderId, String sender, List<Message> lostMessages) {
+    public ReconnectionReplyMessage(UUID senderId, String sender, List<Message> lostMessages, String interestedUser) {
         super(senderId);
         this.sender = sender;
         this.lostMessages = lostMessages;
+        this.interestedUser = interestedUser;
     }
 
     public List<Message> getLostMessages() {
@@ -28,7 +30,7 @@ public class ReconnectionReplyMessage extends Message {
 
     @Override
     public String toString() {
-        return "ReconnectionReplyMessage";
+        return "ReconnectionReplyMessage { sender = " + sender + " interestedUser = " + interestedUser + " id = " + getMessageUUID() + "}";
     }
 
     public String getSender() {
@@ -36,4 +38,7 @@ public class ReconnectionReplyMessage extends Message {
     }
 
 
+    public String getInterestedUser() {
+        return interestedUser;
+    }
 }

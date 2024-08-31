@@ -378,7 +378,7 @@ public class Client {
             }
         }
         for (Room room : app.getDeletedRoomsAsList()){
-            if(room.getMulticastIP().equals(ip) && !room.getRoomId().equals(deletedRoom.getRoomId())){
+            if(room.getMulticastIP().equals(ip) && !room.getRoomId().equals(deletedRoom.getRoomId()) && !room.isAcknowledgedDeleted()){
                 return false;
             }
         }

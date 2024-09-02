@@ -28,12 +28,14 @@ public class P2PChatApp {
     private CLI cli;
     private Map<UUID, Room> rooms;
     private final Map<UUID, Room> deletedRooms;
-    private Map<UUID, String> usernameRegistry;
+    //private Map<UUID, String> usernameRegistry;
+    private Map<UUID, Username> usernameRegistry;
     private static Username username = null;
     public P2PChatApp(){
         this.rooms = new ConcurrentHashMap<>();
         this.usernameRegistry = new ConcurrentHashMap<>();
         this.deletedRooms = new ConcurrentHashMap<>();
+        //this.usernameRegistry = new ConcurrentHashMap<>();
         //this.ackDeletedRooms = new ConcurrentHashMap<>();
     }
 
@@ -46,7 +48,7 @@ public class P2PChatApp {
             throw new RuntimeException(e);
         }
         app.setClient(client);
-        System.out.println("1");
+
         app.initialize();
         CLI cli = new CLI(app);
 
@@ -57,7 +59,7 @@ public class P2PChatApp {
         usernameProtocol(app);
 
         retrieveLostMessages(app);
-        System.out.println("3 " + P2PChatApp.username);
+
         cli.start();
 
         // Add shutdown hook to save state when the application exits
@@ -71,8 +73,9 @@ public class P2PChatApp {
         AppState state = PersistenceManager.loadState();
 
         if (state != null) {
-            P2PChatApp.username = new Username(state.getUsername(), state.getCode()) ;
-            System.out.println("2 :" + P2PChatApp.username);
+            //P2PChatApp.username = new Username(state.getUsername(), state.getCode(), state.getTimestamp());
+            P2PChatApp.username = state.getUsername();
+
             synchronized (deletedRooms) {
                 //deletedRooms.addAll(state.getDeletedRooms());
                 for (Room delRoom : state.getDeletedRooms()){
@@ -153,9 +156,14 @@ public class P2PChatApp {
             return username.toString();
         }
     }
-    public Map<UUID, String> getUsernameRegistry(){
+    /*public Map<UUID, String> getUsernameRegistry(){
+        return usernameRegistry;
+    }*/
+
+    public Map<UUID, Username> getUsernameRegistry() {
         return usernameRegistry;
     }
+
     public boolean proposeUsernameToPeers(Username username) {
         return proposeUsername(username, client, this);
     }
@@ -164,7 +172,7 @@ public class P2PChatApp {
         P2PChatApp.username = username;
     }
 
-    public void updateUsernameRegistry(String updatedUsername, UUID senderId) {
+    public void updateUsernameRegistry(Username updatedUsername, UUID senderId) {
         // Optionally, you can update any UI components or notify the user
         // about the username change
         if(usernameRegistry.get(senderId) == null){
@@ -172,6 +180,7 @@ public class P2PChatApp {
         }
         //client.getLogger().info("username " + updatedUsername + " from " + senderId + " was put in the usernameRegistry of " + username);
         usernameRegistry.put(senderId, updatedUsername);
+        //usernameRegistry.put(senderId, updatedUsername);
     }
 
     public void createRoom(String roomName, Set<String> participants) {
@@ -209,7 +218,7 @@ public class P2PChatApp {
     }
 
     public void processRoomCreationMessage(RoomCreationMessage message) {
-        if(!message.getParticipants().contains(username.toString())){
+        if(username == null || !message.getParticipants().contains(username.toString())){
             //logger.info("Room creation message not for me: " + message);
             System.out.println("Room creation message not for me: " + message);
             return;
@@ -391,9 +400,9 @@ public class P2PChatApp {
         List<UUID> keys = new ArrayList<>();
 
         // Iterate over the entries of the hashtable
-        for (Map.Entry<UUID, String> entry : usernameRegistry.entrySet()) {
+        for (Map.Entry<UUID, Username> entry : usernameRegistry.entrySet()) {
             // Check if the value matches the desired value
-            if (entry.getValue().equals(username)) {
+            if (entry.getValue().toString().equals(username)) {
                 // If it matches, add the key to the list
                 keys.add(entry.getKey());
             }
@@ -476,7 +485,7 @@ public class P2PChatApp {
                 return;
             }
         } else {
-            room = candidates.getFirst();
+            room = candidates.get(0);
         }
 
         room.getLocalClock().incrementClock(username.toString());
@@ -511,6 +520,12 @@ public class P2PChatApp {
         deletedRoom.setAcknowledgedDeleted(true);
         client.closeRoomSocketIfUnused(deletedRoom);
         //deletedRooms.remove(message.getRoomId());
+    }
+
+    public void mergeUsernameRegistries(Map<UUID, Username> receivedRegistry) {
+        for (Map.Entry<UUID, Username> entry : receivedRegistry.entrySet()) {
+            this.usernameRegistry.putIfAbsent(entry.getKey(), entry.getValue());
+        }
     }
     /*
     public Map<UUID, Room> getAckDeletedRooms() {

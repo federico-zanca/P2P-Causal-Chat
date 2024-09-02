@@ -10,39 +10,45 @@ import java.util.*;
 
 public class AppState implements Serializable {
     private static final long serialVersionUID = 1L;
-    private final String username;
-    private final String code;
+    private final Username username;
+    //private final String code;
+    //private final Long timestamp;
     private final UUID clientUUID;
     private final List<SerializableRoom> serializedRooms;
     private transient List<Room> rooms; // don't serialize this field
-    private final Map<UUID, String> usernameRegistry;
+    private final Map<UUID, Username> usernameRegistry;
     private Map<UUID, Long> connectedPeers;
     private Map<UUID, VectorClock> roomClocks;
     private LinkedHashMap<UUID, Boolean> processedMessages;
     private List<SerializableRoom> serializedDeletedRooms;
     private transient List<Room> deletedRooms;
-    public AppState(String username, String code, UUID clientUUID, List<SerializableRoom> rooms, Map<UUID, String> usernameRegistry, List<SerializableRoom> deletedRooms) {
+    public AppState(Username username,UUID clientUUID, List<SerializableRoom> rooms, Map<UUID, Username> usernameRegistry, List<SerializableRoom> deletedRooms) {
         this.username = username;
+        //this.code = code;
+        //this.timestamp = timestamp;
         this.clientUUID = clientUUID;
         this.serializedRooms = rooms;
         this.usernameRegistry = usernameRegistry;
-        this.code = code;
+
         this.serializedDeletedRooms = deletedRooms;
     }
+/*
+    public Long getTimestamp() {
+        return timestamp;
+    }*/
 
-
-    public String getUsername() {
+    public Username getUsername() {
         return username;
-    }
+    }/*
     public String getCode(){
         return code;
-    }
+    }*/
 
     public UUID getClientUUID() {
         return clientUUID;
     }
 
-    public Map<UUID, String> getUsernameRegistry() {
+    public Map<UUID, Username> getUsernameRegistry() {
         return usernameRegistry;
     }
 

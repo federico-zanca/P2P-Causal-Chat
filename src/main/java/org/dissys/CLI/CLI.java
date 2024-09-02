@@ -82,17 +82,11 @@ public class CLI {
         return new Username(username);
     }
     public void setCliState(CLIState state){
-        this.cliState = state;
-        switch (state.getType()){
-            case IN_HOME -> {
-                refreshHome();
-            }
-            case IN_ROOM -> {
-                refreshCurrentRoomMessages();
-            }
-            default -> {throw new IllegalArgumentException("not a valid state type!");
-            }
+        //might need to change for changeUsername state
+        if(cliState.getPossibleNextStates().contains(state.getType())){
+            this.cliState = state;
         }
+        state.runFirstAction(this);
     }
 
     public void handleInput(CLIInput input){
@@ -154,7 +148,7 @@ public class CLI {
             String lastContent = "[No Messages Received Yet]";
 
             if(room.getDeliveredMessages().size() != 0){
-                lastMessage = room.getDeliveredMessages().getLast();
+                lastMessage = room.getDeliveredMessages().get(room.getDeliveredMessages().size()-1);
                 if(lastMessage.isFarewell()){
                     lastContent = colorString(" left the room", RED) ;
                 } else {
@@ -294,7 +288,7 @@ public class CLI {
         return choice;
     }
 
-    public void printPeers(Map<UUID, String> usernameRegistry, Map<UUID, PeerInfo> connectedPeers) {
+    public void printPeers(Map<UUID, Username> usernameRegistry, Map<UUID, PeerInfo> connectedPeers) {
         if(connectedPeers.size() == 0){
             printWarning("no known peers");
         }else {
@@ -328,13 +322,12 @@ public class CLI {
             input = scanner.nextLine().trim();
             parts = input.split("\\s+", 2);
 
-            if(parts[0].equals("1")){
-                newUsername = askForUsername();
-            }else if(parts[0].equals("2")){
-                newUsername.changeCode();
-            }
         }
-
+        if(parts[0].equals("1")){
+            newUsername = askForUsername();
+        }else {
+            newUsername.changeCode();
+        }
         return newUsername;
     }
 }

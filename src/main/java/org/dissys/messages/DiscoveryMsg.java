@@ -18,6 +18,7 @@ public class DiscoveryMsg extends Message{
     @Override
     public void onMessage(Client client) {
         client.getConnectedPeers().put(getSenderId(), new PeerInfo(System.currentTimeMillis(), senderAddress, senderPort));
+        //System.out.println("put peer in connected peers " + getSenderId());
         client.sendUnicastMessage(new DiscoveryAckMsg(client.getUUID(), client.getLocalAddress(), client.getUnicastPort()), senderAddress, senderPort);
     }
 

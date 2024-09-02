@@ -4,14 +4,21 @@ import org.dissys.CLI.CLI;
 import org.dissys.CLI.Input.CLIInput;
 import org.dissys.CLI.Input.RoomMessage;
 
+import java.util.List;
 import java.util.UUID;
 
 public class InRoomState extends CLIState{
     private final UUID currentRoom;
     public InRoomState(UUID currentRoom){
-        super(StateType.IN_ROOM);
+        super(StateType.IN_ROOM, List.of(StateType.IN_HOME, StateType.IN_HOME, StateType.CHANGING_USERNAME));
         this.currentRoom = currentRoom;
     }
+
+    @Override
+    public void runFirstAction(CLI cli) {
+        cli.refreshCurrentRoomMessages();
+    }
+
     @Override
     public void handleInput(CLI cli, CLIInput input) {
         switch (input.getType()){

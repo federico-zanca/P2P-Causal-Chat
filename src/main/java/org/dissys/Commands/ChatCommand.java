@@ -1,6 +1,5 @@
 package org.dissys.Commands;
 
-import org.dissys.CLI.ForegroundColorANSI;
 import org.dissys.CLI.State.InHomeState;
 import org.dissys.P2PChatApp;
 import org.dissys.Room;
@@ -14,6 +13,7 @@ import java.net.InetAddress;
 import java.util.*;
 
 import static org.dissys.CLI.ForegroundColorANSI.*;
+import static org.dissys.Protocols.Username.UsernameProposal.isValidFormatUsernameCode;
 
 public enum ChatCommand implements Command {
 
@@ -154,7 +154,6 @@ public enum ChatCommand implements Command {
             }
             else {
                 System.out.println(getUsage());
-                return;
             }
         }
 
@@ -203,9 +202,18 @@ public enum ChatCommand implements Command {
                 return;
             }
             String roomName = args[0];
+            Set<String> participants = new HashSet<>(Arrays.asList(Arrays.copyOfRange(args, 1, args.length)));
+
+            for (String participantName : participants){
+                if(!isValidFormatUsernameCode(participantName)){
+                    chat.getCli().printWarning("Participant name " + participantName + " is not in the correct format");
+                    System.out.println("Names should be in the format [username]#[code]");
+                    return;
+                }
+            }
             System.out.println("Creating room: " + roomName);
             // move the rest of the args to a set
-            Set<String> participants = new HashSet<>(Arrays.asList(Arrays.copyOfRange(args, 1, args.length)));
+
             chat.createRoom(roomName, participants);
         }
 

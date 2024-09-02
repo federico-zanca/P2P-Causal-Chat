@@ -12,6 +12,8 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Logger;
 
+import static org.dissys.Protocols.GossipProtocol.gossip;
+
 //might need to make observable
 public class Client {
     private final Random random = new Random();
@@ -19,6 +21,7 @@ public class Client {
     private static final int MULTICAST_PORT = 5000;
     private final int unicastPort;
     private static final long HEARTBEAT_INTERVAL = 5000; // 5 seconds
+    private static final long GOSSIP_INTERVAL = 10000; // 5 seconds
     private static final long PEER_TIMEOUT = 15000; // 15 seconds
     private static final int MAX_MSG_CACHE_SIZE = 100;
     private final UUID uuid;
@@ -32,6 +35,7 @@ public class Client {
     private static final Logger logger = LoggerConfig.getLogger();
     private Map<UUID, Boolean> processedMessages;
     private final Map<String, MulticastSocket> sockets;
+    private ScheduledExecutorService executor;
 
     public MulticastSocket getMulticastSocket(){
         return this.multicastSocket;
@@ -41,7 +45,7 @@ public class Client {
         this.app = app;
         this.sockets = new ConcurrentHashMap<>();
         this.localAddress = InetAddress.getLocalHost();
-        this.unicastPort = MULTICAST_PORT + random.nextInt(1,100);
+        this.unicastPort = MULTICAST_PORT + random.nextInt(1,500);
 
         AppState state = PersistenceManager.loadState();
         if (state != null) {
@@ -61,12 +65,15 @@ public class Client {
                 return size() > MAX_MSG_CACHE_SIZE;
             }
         };
+
+        // Initialize the ScheduledExecutorService with a fixed thread pool
+        this.executor = Executors.newScheduledThreadPool(5); // Adjust the pool size based on your needs
     }
     public void start() throws IOException {
 
         multicastSocket = connectToGroup(group, MULTICAST_PORT, MULTICAST_ADDRESS);
         unicastSocket = new DatagramSocket(unicastPort);
-
+/*
         new Thread(this::receiveUnicastMessages).start();
 
         //sockets.put(MULTICAST_ADDRESS, multicastSocket);
@@ -78,12 +85,15 @@ public class Client {
         new Thread(this::sendPeriodicHeartbeat).start();
 
         // Start a thread to remove stale peers
-        new Thread(this::removeInactivePeers).start();
+        new Thread(this::removeInactivePeers).start();*/
+        executor.execute(this::receiveUnicastMessages);
+        executor.execute(this::receiveMessages);
+        executor.scheduleAtFixedRate(this::sendPeriodicHeartbeat, 0, HEARTBEAT_INTERVAL, TimeUnit.MILLISECONDS);
+        executor.scheduleAtFixedRate(this::removeInactivePeers, 0, PEER_TIMEOUT / 2, TimeUnit.MILLISECONDS);
+        executor.scheduleAtFixedRate(() -> gossip(getConnectedPeers(), this), 0, GOSSIP_INTERVAL, TimeUnit.MILLISECONDS);
 
         // Send initial discovery message
         sendDiscoveryMessage();
-
-
     }
 
 
@@ -105,19 +115,23 @@ public class Client {
     }
 
     private void sendDiscoveryMessage() {
+        //System.out.println("sending discovery");
         DiscoveryMsg discoveryMsg = new DiscoveryMsg(uuid, localAddress, unicastPort);
         sendMulticastMessage(discoveryMsg);
     }
-    private void sendPeriodicHeartbeat() {
+    private void sendPeriodicHeartbeat() {/*
         while (!Thread.currentThread().isInterrupted()) {
-            HeartbeatMsg heartbeatMsg = new HeartbeatMsg(uuid, app.getStringUsername());
+            HeartbeatMsg heartbeatMsg = new HeartbeatMsg(uuid);
             sendMulticastMessage(heartbeatMsg);
             try {
                 Thread.sleep(HEARTBEAT_INTERVAL);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
-        }
+        }*/
+        //System.out.println("sending heartbeat");
+        HeartbeatMsg heartbeatMsg = new HeartbeatMsg(uuid);
+        sendMulticastMessage(heartbeatMsg);
     }
 
     public void sendMulticastMessage(Message message){
@@ -125,6 +139,7 @@ public class Client {
     }
 
     public void sendMulticastMessage(Message message, MulticastSocket socket, InetAddress group) {
+        //System.out.println("sending multicastMsg");
         if(!(message instanceof HeartbeatMsg)){
             //System.out.println("Sending " + message);
             logger.info("Sending " + message + "\nROOMSOCKET= " + socket + "\n");
@@ -151,6 +166,7 @@ public class Client {
     }
 
     public void sendUnicastMessage(Message message, InetAddress receiverAddress, int receiverPort) {
+        //System.out.println("sending unicast msg");
         try {
             // Serialize the Message object
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -172,7 +188,9 @@ public class Client {
         }
     }
     private void receiveUnicastMessages() {
+
         while (!Thread.currentThread().isInterrupted()) {
+
             byte[] buffer = new byte[8192]; // Buffer for receiving data
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 
@@ -182,6 +200,7 @@ public class Client {
                 ObjectInputStream ois = new ObjectInputStream(bais);
 
                 Message message = (Message) ois.readObject();
+                //System.out.println("receive unicast " + message);
                 if (!processedMessages.containsKey(message.getMessageUUID())) {
                     processedMessages.put(message.getMessageUUID(), true);
                     processMessage(message);
@@ -199,6 +218,7 @@ public class Client {
     private void receiveMessages() {
 
         while (!Thread.currentThread().isInterrupted()) {
+
             for(Map.Entry<String, MulticastSocket> entry : sockets.entrySet()){
                 try {
                     MulticastSocket socket = entry.getValue();
@@ -213,6 +233,7 @@ public class Client {
                         ObjectInputStream ois = new ObjectInputStream(bais);
 
                         Message message = (Message) ois.readObject();
+                        //System.out.println("receive multicast " + message);
                         //if (!(message instanceof HeartbeatMsg))
                         //    System.out.println("Received message on " + entry.getKey() + message);
                         // Check if the message has already been processed
@@ -271,11 +292,13 @@ public class Client {
                 //System.out.println("Processing " + message);
                 logger.info("Processing " + message);
             }
+            //System.out.println("on message + " + message);
             message.onMessage(this);
+            //System.out.println("finished on message " + message);
         }
     }
 
-    private void removeInactivePeers() {
+    private void removeInactivePeers() {/*
         while (!Thread.currentThread().isInterrupted()) {
             long now = System.currentTimeMillis();
             connectedPeers.entrySet().removeIf(entry ->
@@ -285,14 +308,30 @@ public class Client {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
-        }
+        }*/
+        long now = System.currentTimeMillis();
+        connectedPeers.entrySet().removeIf(entry ->
+                now - entry.getValue().getConnectionTimer() > PEER_TIMEOUT);
     }
-    public void stop() {
+    public void stop() {/*
         try {
             multicastSocket.leaveGroup(new InetSocketAddress(group, MULTICAST_PORT), networkInterface);
             multicastSocket.close();
             unicastSocket.close(); // Close the unicast socket when stopping
         } catch (IOException e) {
+            e.printStackTrace();
+        }*/
+        try {
+            multicastSocket.leaveGroup(new InetSocketAddress(group, MULTICAST_PORT), networkInterface);
+            multicastSocket.close();
+            unicastSocket.close();
+
+            // Shutdown the executor service gracefully
+            executor.shutdown();
+            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+                executor.shutdownNow();
+            }
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
     }

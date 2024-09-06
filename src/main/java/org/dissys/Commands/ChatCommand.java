@@ -374,6 +374,22 @@ public enum ChatCommand implements Command {
             return "prints the username/address/port/uuid of the user";
         }
     },
+    SHOW_UREGISTRY{
+        @Override
+        public void execute(P2PChatApp chat, String[] args) {
+            chat.getCli().showUsernameRegistry(chat.getUsernameRegistry());
+        }
+
+        @Override
+        public String getUsage() {
+            return "show_uregistry";
+        }
+
+        @Override
+        public String getDescription() {
+            return "shows the username registry";
+        }
+    },
 
     PEERS{
         @Override

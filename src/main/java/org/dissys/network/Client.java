@@ -132,7 +132,7 @@ public class Client {
             }
         }*/
         //System.out.println("sending heartbeat");
-        HeartbeatMsg heartbeatMsg = new HeartbeatMsg(uuid);
+        HeartbeatMsg heartbeatMsg = new HeartbeatMsg(uuid, localAddress, UNICAST_PORT);
         sendMulticastMessage(heartbeatMsg);
     }
 

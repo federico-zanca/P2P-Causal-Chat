@@ -67,7 +67,7 @@ public class UsernameProposal {
 
         if(usernameObjectionsReceived.get() <= 0){
             app.setUsername(proposedUsername);
-            //app.updateUsernameRegistry(proposedUsername, app.getUUID());
+            app.updateUsernameRegistry(proposedUsername, app.getUUID());
             //System.out.println("set app username to " + app.getUsername());
             sendUsernameUpdate(client, proposedUsername);
         }else {

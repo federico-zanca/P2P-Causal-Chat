@@ -358,7 +358,7 @@ public enum ChatCommand implements Command {
         public void execute(P2PChatApp chat, String[] args) {
             String username = chat.getUsername().toString();
             InetAddress localAddress = chat.getClient().getLocalAddress();
-            int unicastPort = chat.getClient().getUnicastPort();
+            int unicastPort = chat.getClient().getUNICAST_PORT();
             UUID uuid = chat.getClient().getUUID();
 
             chat.getCli().printSystemInfo(username, localAddress, unicastPort, uuid);

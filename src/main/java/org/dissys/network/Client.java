@@ -19,7 +19,7 @@ public class Client {
     private final Random random = new Random();
     private static final String MULTICAST_ADDRESS = "239.1.1.1";
     private static final int MULTICAST_PORT = 5000;
-    private static final int UNICAST_PORT = 5001;
+    private final int UNICAST_PORT;
     private static final long HEARTBEAT_INTERVAL = 5000; // 5 seconds
     private static final long GOSSIP_INTERVAL = 10000; // 5 seconds
     private static final long PEER_TIMEOUT = 15000; // 15 seconds
@@ -45,7 +45,7 @@ public class Client {
         this.app = app;
         this.sockets = new ConcurrentHashMap<>();
         this.localAddress = InetAddress.getLocalHost();
-        //this.unicastPort = MULTICAST_PORT + random.nextInt(1,500);
+        this.UNICAST_PORT = MULTICAST_PORT + random.nextInt(1,500);
 
         AppState state = PersistenceManager.loadState();
         if (state != null) {
@@ -117,8 +117,8 @@ public class Client {
     }
 
     private void sendDiscoveryMessage() {
-        //System.out.println("sending discovery");
-        DiscoveryMsg discoveryMsg = new DiscoveryMsg(uuid);
+        System.out.println("sending discovery IP: " + localAddress.toString() + " unicast port: " + UNICAST_PORT);
+        DiscoveryMsg discoveryMsg = new DiscoveryMsg(uuid, localAddress, UNICAST_PORT);
         sendMulticastMessage(discoveryMsg);
     }
     private void sendPeriodicHeartbeat() {/*
@@ -167,7 +167,7 @@ public class Client {
         }
     }
 
-    public void sendUnicastMessage(Message message, InetAddress receiverAddress) {
+    public void sendUnicastMessage(Message message, InetAddress receiverAddress, int receiverPort) {
         //System.out.println("sending unicast msg");
         try {
             // Serialize the Message object
@@ -179,7 +179,7 @@ public class Client {
             // Get the byte array of the serialized object
             byte[] buffer = baos.toByteArray();
 
-            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, receiverAddress, UNICAST_PORT);
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, receiverAddress, receiverPort);
             unicastSocket.send(packet); // Send the packet via unicast
 
             // Close the streams
@@ -202,13 +202,13 @@ public class Client {
                 ObjectInputStream ois = new ObjectInputStream(bais);
 
                 Message message = (Message) ois.readObject();
-
+                /*
                 //add to peers when receiving any message;
                 if(connectedPeers.containsKey(message.getSenderId())){
                     connectedPeers.get(message.getSenderId()).setConnectionTimer(System.currentTimeMillis());
                 }else if(!message.getSenderId().equals(uuid)){
                     connectedPeers.put(message.getSenderId(), new PeerInfo(System.currentTimeMillis(), packet.getAddress()));
-                }
+                }*/
 
                 //System.out.println("receive unicast " + message);
                 if (!processedMessages.containsKey(message.getMessageUUID())) {
@@ -243,13 +243,13 @@ public class Client {
                         ObjectInputStream ois = new ObjectInputStream(bais);
 
                         Message message = (Message) ois.readObject();
-
+/*
                         //add to peers when receiving any message;
                         if(connectedPeers.containsKey(message.getSenderId())){
                             connectedPeers.get(message.getSenderId()).setConnectionTimer(System.currentTimeMillis());
                         }else if(!message.getSenderId().equals(uuid)){
                             connectedPeers.put(message.getSenderId(), new PeerInfo(System.currentTimeMillis(), packet.getAddress()));
-                        }
+                        }*/
 
                         //System.out.println("receive multicast " + message);
                         //if (!(message instanceof HeartbeatMsg))

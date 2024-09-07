@@ -7,12 +7,26 @@ import java.net.InetAddress;
 import java.util.UUID;
 
 public class DiscoveryAckMsg extends Message{
-    public DiscoveryAckMsg(UUID senderId) {
+    private final InetAddress senderAddress;
+    private final int senderPort;
+    public DiscoveryAckMsg(UUID senderId, InetAddress senderAddress, int senderPort) {
         super(senderId);
+        this.senderAddress = senderAddress;
+        this.senderPort = senderPort;
     }
 
     @Override
     public void onMessage(Client client) {
+        System.out.println("received discovery Ack from " + senderAddress.toString() + " port " + senderPort);
+        client.getConnectedPeers().put(getSenderId(), new PeerInfo(System.currentTimeMillis(), senderAddress, senderPort));
+    }
+
+    public InetAddress getSenderAddress() {
+        return senderAddress;
+    }
+
+    public int getSenderPort() {
+        return senderPort;
     }
 
     @Override

@@ -11,6 +11,9 @@ public class HeartbeatMsg extends Message{
 
     @Override
     public void onMessage(Client client) {
+        if(client.getConnectedPeers().containsKey(getSenderId())){
+            client.getConnectedPeers().get(getSenderId()).setConnectionTimer(System.currentTimeMillis());
+        }
     }
 
     @Override

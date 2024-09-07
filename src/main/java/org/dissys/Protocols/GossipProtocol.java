@@ -23,7 +23,8 @@ public class GossipProtocol {
 
         // Send the local username registry to the selected peer
         client.sendUnicastMessage(new GossipMsg(client.getUUID(), client.getApp().getUsernameRegistry()),
-                connectedPeers.get(randomPeer).getAddress());
+                connectedPeers.get(randomPeer).getAddress(),
+                connectedPeers.get(randomPeer).getPort());
     }
 
     public static void receiveGossip(Map<UUID, Username> receivedRegistry, P2PChatApp app) {

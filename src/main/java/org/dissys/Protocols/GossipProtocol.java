@@ -17,10 +17,11 @@ public class GossipProtocol {
             return;
         // Select a random peer to gossip with
         List<UUID> peersList = connectedPeers.keySet().stream().toList();
-        UUID randomPeer = peersList.get(new Random().nextInt(peersList.size()));
+        UUID randomPeer = peersList.get(new Random().nextInt(peersList.size()));//???
 
         if (randomPeer == client.getUUID()) return;
 
+        System.out.println("sending gossip to " + randomPeer);
         // Send the local username registry to the selected peer
         client.sendUnicastMessage(new GossipMsg(client.getUUID(), client.getApp().getUsernameRegistry()),
                 connectedPeers.get(randomPeer).getAddress(),

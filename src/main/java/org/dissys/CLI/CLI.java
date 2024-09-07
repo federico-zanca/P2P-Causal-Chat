@@ -334,7 +334,7 @@ public class CLI {
     public void showUsernameRegistry(Map<UUID, Username> usernameRegistry) {
         System.out.println(colorString("Username Registry:", BLUE));
         for (UUID uuid : usernameRegistry.keySet()){
-            System.out.println(colorString("UUID: ", YELLOW) + uuid.toString() + colorString("Username: ", GREEN) + usernameRegistry.get(uuid));
+            System.out.println(colorString("UUID: ", YELLOW) + uuid.toString() + colorString(" Username: ", GREEN) + usernameRegistry.get(uuid));
         }
     }
 }

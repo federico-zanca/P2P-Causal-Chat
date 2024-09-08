@@ -84,8 +84,8 @@ public class UsernameProposal {
     }
 
     public static void handleUsernameProposal(UsernameProposalMsg proposal, P2PChatApp app) {
-        InetAddress proposalAddress = app.getClient().getConnectedPeers().get(proposal.getSenderId()).getAddress();
-        int proposalPort = app.getClient().getConnectedPeers().get(proposal.getSenderId()).getPort();
+        //InetAddress proposalAddress = app.getClient().getConnectedPeers().get(proposal.getSenderId()).getAddress();
+        //int proposalPort = app.getClient().getConnectedPeers().get(proposal.getSenderId()).getPort();
 
         List<UUID> conflicts = conflictsFound(app, proposal.getProposedUsername(), proposal.getSenderId());
 
@@ -102,16 +102,16 @@ public class UsernameProposal {
                     //InetAddress receiverAddress = app.getClient().getConnectedPeers().get(proposal.getSenderId()).getAddress();
                     //int receiverPort = app.getClient().getConnectedPeers().get(proposal.getSenderId()).getPort();
 
-                    app.getClient().sendUnicastMessage(objection, proposalAddress, proposalPort);
+                    app.getClient().sendUnicastMessage(proposal.getSenderId() ,objection);
 
                 } else{
                     //send usernameChangeRequest to other
-                    InetAddress nameChangeAddress = app.getClient().getConnectedPeers().get(id).getAddress();
-                    int nameChangePort = app.getClient().getConnectedPeers().get(id).getPort();
+                    //InetAddress nameChangeAddress = app.getClient().getConnectedPeers().get(id).getAddress();
+                    //int nameChangePort = app.getClient().getConnectedPeers().get(id).getPort();
 
                     UsernameChangeRequestMsg changeRequest = new UsernameChangeRequestMsg(app.getUUID());
 
-                    app.getClient().sendUnicastMessage(changeRequest, nameChangeAddress, nameChangePort);
+                    app.getClient().sendUnicastMessage(id, changeRequest);
                 }
             }else {
                 Username comparison;
@@ -125,7 +125,7 @@ public class UsernameProposal {
 
                     // Send an objection if the proposed username conflicts with our own or another registered username
                     UsernameObjectionMsg objection = new UsernameObjectionMsg(app.getClient().getUUID(), proposal.getSenderId());
-                    app.getClient().sendUnicastMessage(objection, proposalAddress, proposalPort);
+                    app.getClient().sendUnicastMessage(proposal.getSenderId(), objection);
 
                 } else{
                     //send usernameChangeRequest to other

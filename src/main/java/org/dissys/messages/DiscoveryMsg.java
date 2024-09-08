@@ -17,13 +17,16 @@ public class DiscoveryMsg extends Message{
 
     @Override
     public void onMessage(Client client) {
-        client.getConnectedPeers().put(getSenderId(), new PeerInfo(System.currentTimeMillis(), senderAddress, senderPort));
+        if (!client.getConnectedPeers().containsKey(getSenderId())) {
+            client.connectToPeer(senderAddress, senderPort, getSenderId());
+        }
+        //client.getConnectedPeers().put(getSenderId(), new PeerInfo(System.currentTimeMillis(), senderAddress, senderPort));
         //System.out.println("put peer in connected peers " + getSenderId());
-        InetAddress receiverAddress = client.getConnectedPeers().get(getSenderId()).getAddress();
-        int receiverPort = client.getConnectedPeers().get(getSenderId()).getPort();
+        //InetAddress receiverAddress = client.getConnectedPeers().get(getSenderId()).getAddress();
+        //int receiverPort = client.getConnectedPeers().get(getSenderId()).getPort();
 
-        System.out.println("sending discovery ack to " + receiverAddress.toString() + " port " + receiverPort);
-        client.sendUnicastMessage(new DiscoveryAckMsg(client.getUUID(), client.getLocalAddress(), client.getUNICAST_PORT()), receiverAddress, receiverPort);
+        //System.out.println("sending discovery ack to " + receiverAddress.toString() + " port " + receiverPort);
+        client.sendUnicastMessage(getSenderId(), new DiscoveryAckMsg(client.getUUID(), client.getLocalAddress(), client.getUNICAST_PORT()));
     }
 
     @Override

@@ -17,10 +17,10 @@ public class HeartbeatMsg extends Message{
 
     @Override
     public void onMessage(Client client) {
-        if(client.getConnectedPeers().containsKey(getSenderId())){
-            client.getConnectedPeers().get(getSenderId()).setConnectionTimer(System.currentTimeMillis());
+        if (!client.getConnectedPeers().containsKey(getSenderId())) {
+            client.connectToPeer(senderAddress, senderPort, getSenderId());
         }else {
-            client.getConnectedPeers().put(getSenderId(), new PeerInfo(System.currentTimeMillis(), senderAddress, senderPort));
+            client.getConnectedPeers().get(getSenderId()).setConnectionTimer(System.currentTimeMillis());
         }
     }
 

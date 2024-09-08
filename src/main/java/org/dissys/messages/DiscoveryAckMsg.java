@@ -18,7 +18,10 @@ public class DiscoveryAckMsg extends Message{
     @Override
     public void onMessage(Client client) {
         System.out.println("received discovery Ack from " + senderAddress.toString() + " port " + senderPort);
-        client.getConnectedPeers().put(getSenderId(), new PeerInfo(System.currentTimeMillis(), senderAddress, senderPort));
+        //client.getConnectedPeers().put(getSenderId(), new PeerInfo(System.currentTimeMillis(), senderAddress, senderPort));
+        if (!client.getConnectedPeers().containsKey(getSenderId())) {
+            client.connectToPeer(senderAddress, senderPort, getSenderId());
+        }
     }
 
     public InetAddress getSenderAddress() {

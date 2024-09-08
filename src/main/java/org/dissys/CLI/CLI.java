@@ -295,7 +295,7 @@ public class CLI {
             System.out.println(colorString("Connected peers: ", BLUE));
             for (UUID uuid : connectedPeers.keySet()){
                 System.out.println(colorString(" - UUID: ", YELLOW)  + uuid.toString() +
-                        colorString(" IP: ", CYAN)  + connectedPeers.get(uuid).getAddress().toString() +
+                        colorString(" IP: ", CYAN)  + connectedPeers.get(uuid).getSocket().getInetAddress() +
                         colorString(" Username: ", GREEN)  + usernameRegistry.get(uuid));
             }
         }

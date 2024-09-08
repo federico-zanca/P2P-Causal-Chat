@@ -179,48 +179,7 @@ public class Client {
             e.printStackTrace();
         }
     }*/
-    public void sendUnicastMessage(UUID peerId, Message message) {
-        PeerInfo peer = connectedPeers.get(peerId);
-        if (peer != null) {
-            try {
-                ObjectOutputStream out = new ObjectOutputStream(peer.getSocket().getOutputStream());
-                out.writeObject(message);
-                out.flush();
-                //System.out.println("Sent to " + peerId + ": " + message);
-            } catch (IOException e) {
-                //System.out.println("Failed to send message to peer: " + peerId);
-                connectedPeers.remove(peerId);
-            }
-        } else {
-            System.out.println("Peer not found: " + peerId + "for message " + message);
-        }
-    }
-    private void handlePeer(PeerInfo peer) {
-        //PeerInfo peer = connectedPeers.get(peerUUID);
-        try {
-            ObjectInputStream in = new ObjectInputStream(peer.getSocket().getInputStream());
-            while (true) {
-                Message message = (Message) in.readObject();
-                //System.out.println("Received from " + peerUUID + ": " + message);
-                // Process the message as needed
-                //System.out.println("receive unicast " + message);
-                if (!processedMessages.containsKey(message.getMessageUUID())) {
-                    processedMessages.put(message.getMessageUUID(), true);
-                    processMessage(message);
-                }
 
-            }
-        } catch (IOException | ClassNotFoundException e) {
-            //System.out.println("Connection closed with peer: " + peerUUID);
-        } finally {
-            //connectedPeers.remove(peerUUID);
-            try {
-                peer.getSocket().close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
     /*
     private void receiveUnicastMessages() {
 
@@ -464,10 +423,52 @@ public class Client {
             }
         }
     }
+    public void sendUnicastMessage(UUID peerId, Message message) {
+        PeerInfo peer = connectedPeers.get(peerId);
+        if (peer != null) {
+            try {
+                ObjectOutputStream out = new ObjectOutputStream(peer.getSocket().getOutputStream());
+                out.writeObject(message);
+                out.flush();
+                //System.out.println("Sent to " + peerId + ": " + message);
+            } catch (IOException e) {
+                //System.out.println("Failed to send message to peer: " + peerId);
+                connectedPeers.remove(peerId);
+            }
+        } else {
+            System.out.println("Peer not found: " + peerId + "for message " + message);
+        }
+    }
+    private void handlePeer(PeerInfo peer) {
+        //PeerInfo peer = connectedPeers.get(peerUUID);
+        try {
+            ObjectInputStream in = new ObjectInputStream(peer.getSocket().getInputStream());
+            while (true) {
+                Message message = (Message) in.readObject();
+                //System.out.println("Received from " + peerUUID + ": " + message);
+                // Process the message as needed
+                //System.out.println("receive unicast " + message);
+                if (!processedMessages.containsKey(message.getMessageUUID())) {
+                    processedMessages.put(message.getMessageUUID(), true);
+                    processMessage(message);
+                }
+
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            //System.out.println("Connection closed with peer: " + peerUUID);
+        } finally {
+            //connectedPeers.remove(peerUUID);
+            try {
+                peer.getSocket().close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
     public void connectToPeer(InetAddress senderAddress, int senderPort, UUID senderId) {
         try {
             Socket socket = new Socket(senderAddress, senderPort);
-            sendUnicastMessage(senderId, new DiscoveryAckMsg(getUUID(), getLocalAddress(), getUNICAST_PORT()));
+            //sendUnicastMessage(senderId, new DiscoveryAckMsg(getUUID(), getLocalAddress(), getUNICAST_PORT()));
             PeerInfo peer = new PeerInfo(socket);
             connectedPeers.put(senderId, peer);
             //System.out.println("Connected to peer: " + senderId);

@@ -21,9 +21,9 @@ public class GossipProtocol {
 
         if (randomPeer == client.getUUID()) return;
 
-        System.out.println("sending gossip to " + randomPeer);
+        //System.out.println("sending gossip to " + randomPeer);
         // Send the local username registry to the selected peer
-        client.sendUnicastMessage(randomPeer ,new GossipMsg(client.getUUID(), client.getApp().getUsernameRegistry()));
+        client.sendUnicastMessage(randomPeer, new GossipMsg(client.getUUID(), client.getApp().getUsernameRegistry()));
         //client.sendMulticastMessage(new GossipMsg(client.getUUID(), client.getApp().getUsernameRegistry()));
     }
 

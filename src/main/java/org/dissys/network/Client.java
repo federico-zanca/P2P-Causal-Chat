@@ -68,7 +68,7 @@ public class Client {
         };
 
         // Initialize the ScheduledExecutorService with a fixed thread pool
-        this.executor = Executors.newScheduledThreadPool(5); // Adjust the pool size based on your needs
+        this.executor = Executors.newScheduledThreadPool(6); // Adjust the pool size based on your needs
     }
     public void start() throws IOException {
 
@@ -406,33 +406,43 @@ public class Client {
                 ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
 
                 Message message = (Message) in.readObject();
-                //System.out.println("Received from " + message.getSenderId() + ": " + message);
+                System.out.println("Received from " + message.getSenderId() + ": " + message);
                 // Process the message as needed
-
-
+                if(!connectedPeers.containsKey(message.getSenderId())){
+                    handleNewConnection(clientSocket, message.getSenderId(), in);
+                }
                 if (!processedMessages.containsKey(message.getMessageUUID())) {
                     processedMessages.put(message.getMessageUUID(), true);
                     processMessage(message);
                 }
                 //String peerId = receiveUUID(clientSocket);
+                /*
                 if(!connectedPeers.containsKey(message.getSenderId())){
                     connectToPeer(clientSocket.getInetAddress(), clientSocket.getPort(), message.getSenderId());
-                }
+                }*/
             } catch (IOException | ClassNotFoundException ignored) {
                 //e.printStackTrace();
             }
         }
     }
+
+    private void handleNewConnection(Socket clientSocket, UUID senderID, ObjectInputStream in) throws IOException {
+        PeerInfo peer = new PeerInfo(clientSocket);
+        connectedPeers.put(senderID, peer);
+        System.out.println("New peer connected: " + peer);
+        executor.submit(() -> handlePeer(peer, in));
+    }
     public void sendUnicastMessage(UUID peerId, Message message) {
+        System.out.println("sending " + message);
         PeerInfo peer = connectedPeers.get(peerId);
         if (peer != null) {
             try {
-                ObjectOutputStream out = new ObjectOutputStream(peer.getSocket().getOutputStream());
+                ObjectOutputStream out = peer.getOutputStream();
                 out.writeObject(message);
                 out.flush();
                 //System.out.println("Sent to " + peerId + ": " + message);
             } catch (IOException e) {
-                //System.out.println("Failed to send message to peer: " + peerId);
+                System.out.println("Failed to send message to peer: " + peerId);
                 connectedPeers.remove(peerId);
             }
         } else {
@@ -447,7 +457,7 @@ public class Client {
                 Message message = (Message) in.readObject();
                 //System.out.println("Received from " + peerUUID + ": " + message);
                 // Process the message as needed
-                //System.out.println("receive unicast " + message);
+                System.out.println("receive unicast " + message + "from " + message.getMessageUUID());
                 if (!processedMessages.containsKey(message.getMessageUUID())) {
                     processedMessages.put(message.getMessageUUID(), true);
                     processMessage(message);
@@ -455,7 +465,35 @@ public class Client {
 
             }
         } catch (IOException | ClassNotFoundException e) {
-            //System.out.println("Connection closed with peer: " + peerUUID);
+            System.out.println("Connection closed with peer: " + peer.getSocket().getPort());
+            e.printStackTrace();
+        } finally {
+            //connectedPeers.remove(peerUUID);
+            try {
+                peer.getSocket().close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    private void handlePeer(PeerInfo peer, ObjectInputStream in) {
+        //PeerInfo peer = connectedPeers.get(peerUUID);
+        try {
+            //ObjectInputStream in = new ObjectInputStream(peer.getSocket().getInputStream());
+            while (true) {
+                Message message = (Message) in.readObject();
+                //System.out.println("Received from " + peerUUID + ": " + message);
+                // Process the message as needed
+                System.out.println("receive unicast " + message + "from " + message.getMessageUUID());
+                if (!processedMessages.containsKey(message.getMessageUUID())) {
+                    processedMessages.put(message.getMessageUUID(), true);
+                    processMessage(message);
+                }
+
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            System.out.println("Connection closed with peer: " + peer.getSocket().getPort());
+            //e.printStackTrace();
         } finally {
             //connectedPeers.remove(peerUUID);
             try {

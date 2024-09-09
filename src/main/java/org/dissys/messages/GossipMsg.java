@@ -17,7 +17,7 @@ public class GossipMsg extends Message{
 
     @Override
     public void onMessage(Client client) {
-        System.out.println("received gossip from " + getSenderId());
+        //System.out.println("received gossip from " + getSenderId());
         receiveGossip(usernameRegistry, client.getApp());
     }
 

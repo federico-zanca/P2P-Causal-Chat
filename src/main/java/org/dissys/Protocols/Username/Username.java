@@ -5,7 +5,7 @@ import java.time.Instant;
 import java.util.Random;
 
 public class Username implements Serializable {
-    public static final int CODE_DIGITS = 0;
+    public static final int CODE_DIGITS = 4;
     private final String name;
     private String code;
     private final Long timestamp;

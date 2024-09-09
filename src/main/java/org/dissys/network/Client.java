@@ -457,7 +457,7 @@ public class Client {
                 Message message = (Message) in.readObject();
                 //System.out.println("Received from " + peerUUID + ": " + message);
                 // Process the message as needed
-                System.out.println("receive unicast " + message + "from " + message.getMessageUUID());
+                //System.out.println("receive unicast " + message + "from " + message.getMessageUUID());
                 if (!processedMessages.containsKey(message.getMessageUUID())) {
                     processedMessages.put(message.getMessageUUID(), true);
                     processMessage(message);
@@ -484,7 +484,7 @@ public class Client {
                 Message message = (Message) in.readObject();
                 //System.out.println("Received from " + peerUUID + ": " + message);
                 // Process the message as needed
-                System.out.println("receive unicast " + message + "from " + message.getMessageUUID());
+                //System.out.println("receive unicast " + message + "from " + message.getMessageUUID());
                 if (!processedMessages.containsKey(message.getMessageUUID())) {
                     processedMessages.put(message.getMessageUUID(), true);
                     processMessage(message);

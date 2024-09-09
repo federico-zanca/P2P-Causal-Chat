@@ -117,7 +117,7 @@ public class Client {
     }
 
     private void sendDiscoveryMessage() {
-        System.out.println("sending discovery IP: " + localAddress.toString() + " unicast port: " + UNICAST_PORT);
+        //System.out.println("sending discovery IP: " + localAddress.toString() + " unicast port: " + UNICAST_PORT);
         DiscoveryMsg discoveryMsg = new DiscoveryMsg(uuid, localAddress, UNICAST_PORT);
         sendMulticastMessage(discoveryMsg);
     }
@@ -406,7 +406,7 @@ public class Client {
                 ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
 
                 Message message = (Message) in.readObject();
-                System.out.println("Received from " + message.getSenderId() + ": " + message);
+                //System.out.println("Received from " + message.getSenderId() + ": " + message);
                 // Process the message as needed
                 if(!connectedPeers.containsKey(message.getSenderId())){
                     handleNewConnection(clientSocket, message.getSenderId(), in);
@@ -433,7 +433,7 @@ public class Client {
         executor.submit(() -> handlePeer(peer, in));
     }
     public void sendUnicastMessage(UUID peerId, Message message) {
-        System.out.println("sending " + message);
+        //System.out.println("sending " + message);
         PeerInfo peer = connectedPeers.get(peerId);
         if (peer != null) {
             try {
@@ -466,7 +466,7 @@ public class Client {
             }
         } catch (IOException | ClassNotFoundException e) {
             System.out.println("Connection closed with peer: " + peer.getSocket().getPort());
-            e.printStackTrace();
+            //e.printStackTrace();
         } finally {
             //connectedPeers.remove(peerUUID);
             try {

@@ -186,7 +186,7 @@ public class CLI {
         //print >
         System.out.print(">");
     }
-
+    /*
     private void printCurrentRoomMessages() {
         int nStrdMessages = getCurrentRoom().getDeliveredMessages().size();
         String noMessages = "No messages";
@@ -231,6 +231,55 @@ public class CLI {
         }
 
     }
+
+     */
+
+    private void printCurrentRoomMessages() {
+        int nStrdMessages = getCurrentRoom().getDeliveredMessages().size();
+        String noMessages = "No messages";
+
+        if (nStrdMessages == 0) {
+            System.out.println(colorString(nSpaces((APP_INTERFACE_LENGHT - noMessages.length()) / 2) +
+                    noMessages +
+                    nSpaces((APP_INTERFACE_LENGHT - noMessages.length()) / 2), DARK_GRAY));
+        }
+
+        // Adjust the start index to print the last N messages
+        int startIdx = Math.max(0, nStrdMessages - DEFAULT_ROOM_MESSAGES_SHOWN);
+
+        for (int i = startIdx; i < nStrdMessages; i++) {
+            ChatMessage message = getCurrentRoom().getDeliveredMessages().get(i);
+
+            if (message.isFarewell()) {  // User left the room message, it has no content
+                System.out.println(assignColorToName(message.getSender()) + message.getSender() + RESET + " left the room");
+            } else {
+                System.out.println(assignColorToName(message.getSender()) +
+                        message.getSender() +
+                        RESET +
+                        ": " +
+                        message.getContent());
+            }
+        }
+
+        // Now print buffered messages if they exist
+        int nBufferedMessages = getCurrentRoom().getBufferedMessages().size();
+        if (nBufferedMessages != 0) {
+            printHeader("Buffered messages", APP_INTERFACE_LENGHT);
+
+            int startBufferedIdx = Math.max(0, nBufferedMessages - DEFAULT_ROOM_MESSAGES_SHOWN);
+
+            for (int i = startBufferedIdx; i < nBufferedMessages; i++) {
+                ChatMessage message = getCurrentRoom().getBufferedMessages().get(i);
+
+                System.out.println(assignColorToName(message.getSender()) +
+                        message.getSender() +
+                        RESET +
+                        ": " +
+                        message.getContent());
+            }
+        }
+    }
+
 
     private ForegroundColorANSI assignColorToName(String name) {
         int moduleHash = name.charAt(0)% USABLE_COLORS_FOR_NAMES;

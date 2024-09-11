@@ -46,8 +46,13 @@ public class Client {
     public Client(P2PChatApp app) throws UnknownHostException {
         this.app = app;
         this.sockets = new ConcurrentHashMap<>();
-        this.localAddress = InetAddress.getLocalHost();
-        this.UNICAST_PORT = MULTICAST_PORT + random.nextInt(1,500);
+        //this.localAddress = InetAddress.getLocalHost();
+        this.localAddress = getLocalIPAddress();
+        if(localAddress.isLoopbackAddress()) {
+            System.out.println("IAUNIANOAOMAOAOAOAOAOAOAOAOOA");
+        }
+        //  this.UNICAST_PORT = MULTICAST_PORT + random.nextInt(1,500);
+        this.UNICAST_PORT = 5340;
         isConnected = true;
 
         AppState state = PersistenceManager.loadState();
@@ -72,13 +77,46 @@ public class Client {
         // Initialize the ScheduledExecutorService with a fixed thread pool
         this.executor = Executors.newScheduledThreadPool(6); // Adjust the pool size based on your needs
     }
+
+    private InetAddress getLocalIPAddress() throws UnknownHostException {
+        // Try to get the local host address
+        InetAddress localAddress = InetAddress.getLocalHost();
+
+        // Check if it is a loopback address
+        if (localAddress.isLoopbackAddress()) {
+            // Retrieve all network interfaces
+            try {
+                Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
+                for (NetworkInterface networkInterface : Collections.list(networkInterfaces)) {
+                    // Skip interfaces that are not up or that are loopback
+                    if (networkInterface.isUp() && !networkInterface.isLoopback()) {
+                        // Get all IP addresses associated with this network interface
+                        Enumeration<InetAddress> inetAddresses = networkInterface.getInetAddresses();
+                        for (InetAddress inetAddress : Collections.list(inetAddresses)) {
+                            // Prefer IPv4 addresses
+                            if (!inetAddress.isLoopbackAddress() && !inetAddress.isLinkLocalAddress() && inetAddress instanceof java.net.Inet4Address) {
+                                return inetAddress;
+                            }
+                        }
+                    }
+                }
+            } catch (IOException e) {
+                throw new UnknownHostException("Unable to determine local IP address");
+            }
+            throw new UnknownHostException("No non-loopback IP address found");
+        }
+
+        return localAddress;
+    }
+
     public void start() throws IOException {
 
         multicastSocket = connectToGroup(group, MULTICAST_PORT, MULTICAST_ADDRESS);
         //unicastSocket = new DatagramSocket(UNICAST_PORT);
 
         try {
-            serverSocket = new ServerSocket(UNICAST_PORT);
+            //serverSocket = new ServerSocket(UNICAST_PORT);
+            serverSocket = new ServerSocket(UNICAST_PORT, 50, InetAddress.getByName("0.0.0.0"));
             //System.out.println("Node started on port " + UNICAST_PORT);
 
             // Start a thread to listen for incoming connections
@@ -94,7 +132,6 @@ public class Client {
         executor.scheduleAtFixedRate(this::removeInactivePeers, 0, PEER_TIMEOUT / 2, TimeUnit.MILLISECONDS);
         executor.scheduleAtFixedRate(() -> gossip(getConnectedPeers(), this), 0, GOSSIP_INTERVAL, TimeUnit.MILLISECONDS);
 
-        // Send initial discovery message
         sendDiscoveryMessage();
     }
 

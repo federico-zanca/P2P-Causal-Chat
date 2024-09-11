@@ -294,11 +294,8 @@ public class Client {
                     DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                     socket.setSoTimeout(500);
 
-                    isConnected = true;
-                    executor.submit(() -> sendMulticastMessage(new ReconnectionRequestMessage(uuid,
-                            app.getStringUsername(),
-                            app.getRoomsAsList(),
-                            app.getDeletedRooms())));
+
+
 
                     try {
                         socket.receive(packet);
@@ -306,6 +303,17 @@ public class Client {
                         ObjectInputStream ois = new ObjectInputStream(bais);
 
                         Message message = (Message) ois.readObject();
+
+                        if(!message.getSenderId().equals(uuid) && !isConnected){
+
+                            executor.submit(() -> sendMulticastMessage(new ReconnectionRequestMessage(uuid,
+                                    app.getStringUsername(),
+                                    app.getRoomsAsList(),
+                                    app.getDeletedRooms())));
+
+                            isConnected = true;
+                        }
+
 /*
                         //add to peers when receiving any message;
                         if(connectedPeers.containsKey(message.getSenderId())){

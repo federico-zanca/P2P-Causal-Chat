@@ -38,6 +38,10 @@ public class Client {
     private final Map<String, MulticastSocket> sockets;
     private ScheduledExecutorService executor;
 
+    private final MulticastMessageQueue multicastMessageQueue;
+    private boolean isConnected;
+    private static final long MESSAGE_RETRY_INTERVAL = 5000; // 5 seconds
+
     public MulticastSocket getMulticastSocket(){
         return this.multicastSocket;
     }
@@ -47,6 +51,9 @@ public class Client {
         this.sockets = new ConcurrentHashMap<>();
         this.localAddress = InetAddress.getLocalHost();
         this.UNICAST_PORT = MULTICAST_PORT + random.nextInt(1,500);
+
+        this.multicastMessageQueue = new MulticastMessageQueue();
+        this.isConnected = true;
 
         AppState state = PersistenceManager.loadState();
         if (state != null) {
@@ -91,6 +98,7 @@ public class Client {
         executor.scheduleAtFixedRate(this::sendPeriodicHeartbeat, 0, HEARTBEAT_INTERVAL, TimeUnit.MILLISECONDS);
         executor.scheduleAtFixedRate(this::removeInactivePeers, 0, PEER_TIMEOUT / 2, TimeUnit.MILLISECONDS);
         executor.scheduleAtFixedRate(() -> gossip(getConnectedPeers(), this), 0, GOSSIP_INTERVAL, TimeUnit.MILLISECONDS);
+        executor.scheduleAtFixedRate(this::processQueuedMulticastMessages, 0, MESSAGE_RETRY_INTERVAL, TimeUnit.MILLISECONDS);
 
         // Send initial discovery message
         sendDiscoveryMessage();
@@ -116,6 +124,23 @@ public class Client {
         multicastSocket.close();
     }
 
+    public void sendMulticastMessage(Message message, MulticastSocket socket, InetAddress group) {
+        if (shouldQueueMessage(message)) {
+            multicastMessageQueue.enqueue(message, group);
+            if (isConnected) {
+                processQueuedMulticastMessages();
+            }
+        } else {
+            sendMulticastMessageImmediately(message, socket, group);
+        }
+    }
+
+    private boolean shouldQueueMessage(Message message) {
+        // Implement logic to determine if this type of message should be queued
+        // For example:
+        return message instanceof ChatMessage;
+    }
+
     private void sendDiscoveryMessage() {
         //System.out.println("sending discovery IP: " + localAddress.toString() + " unicast port: " + UNICAST_PORT);
         DiscoveryMsg discoveryMsg = new DiscoveryMsg(uuid, localAddress, UNICAST_PORT);
@@ -129,7 +154,48 @@ public class Client {
     public void sendMulticastMessage(Message message){
         sendMulticastMessage(message, this.multicastSocket, this.group);
     }
+    private void sendMulticastMessageImmediately(Message message, MulticastSocket socket, InetAddress group) {
+        if(!(message instanceof HeartbeatMsg)){
+            //System.out.println("Sending " + message);
+            logger.info("Sending " + message + "\nROOMSOCKET= " + socket + "\n");
+        }
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(message);
+            oos.flush();
 
+            byte[] buffer = baos.toByteArray();
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, MULTICAST_PORT);
+            socket.send(packet);
+
+            oos.close();
+            baos.close();
+        } catch (IOException e) {
+            System.out.println("Failed to send multicast message: " + e.getMessage());
+            multicastMessageQueue.enqueue(message, group);
+            isConnected = false;
+        }
+    }
+    private void processQueuedMulticastMessages() {
+        while (!multicastMessageQueue.isEmpty() && isConnected) {
+            QueuedMulticastMessage queuedMessage = multicastMessageQueue.dequeue();
+            if (queuedMessage != null) {
+                Message message = queuedMessage.message();
+                InetAddress group = queuedMessage.group();
+                MulticastSocket socket = sockets.get(group.getHostAddress());
+
+                if (socket != null && !socket.isClosed()) {
+                    sendMulticastMessageImmediately(message, socket, group);
+                } else {
+                    // If the socket is not available, re-queue the message
+                    multicastMessageQueue.enqueue(message, group);
+                    break;
+                }
+            }
+        }
+    }
+/*
     public void sendMulticastMessage(Message message, MulticastSocket socket, InetAddress group) {
         //System.out.println("sending multicastMsg");
         if(!(message instanceof HeartbeatMsg)){
@@ -155,7 +221,7 @@ public class Client {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
+    }*/
 /*
     public void sendUnicastMessage(Message message, InetAddress receiverAddress, int receiverPort) {
         //System.out.println("sending unicast msg");
@@ -226,8 +292,13 @@ public class Client {
                     MulticastSocket socket = entry.getValue();
                     byte[] buffer = new byte[8192]; // Increased buffer size for serialized objects
                     DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-
                     socket.setSoTimeout(500);
+
+                    isConnected = true;
+                    executor.submit(() -> sendMulticastMessage(new ReconnectionRequestMessage(uuid,
+                            app.getStringUsername(),
+                            app.getRoomsAsList(),
+                            app.getDeletedRooms())));
 
                     try {
                         socket.receive(packet);
@@ -259,9 +330,11 @@ public class Client {
                     } catch (SocketTimeoutException ignored) {
                         // Ignore timeout and continue to the next socket
                     }
-                }catch (IOException | ClassNotFoundException e) {
-                        e.printStackTrace();
-                        break;
+                }catch (IOException e) {
+                    System.out.println("Network error: " + e.getMessage());
+                    isConnected = false;
+                }catch (ClassNotFoundException e){
+                    e.printStackTrace();
                 }
             }
         }

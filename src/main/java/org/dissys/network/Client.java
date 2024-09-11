@@ -49,10 +49,10 @@ public class Client {
         //this.localAddress = InetAddress.getLocalHost();
         this.localAddress = getLocalIPAddress();
         if(localAddress.isLoopbackAddress()) {
-            System.out.println("IAUNIANOAOMAOAOAOAOAOAOAOAOOA");
+            System.out.println("Loopback address! Critical problem");
         }
-        //  this.UNICAST_PORT = MULTICAST_PORT + random.nextInt(1,500);
-        this.UNICAST_PORT = 5340;
+        this.UNICAST_PORT = MULTICAST_PORT + random.nextInt(1,500);
+
         isConnected = true;
 
         AppState state = PersistenceManager.loadState();

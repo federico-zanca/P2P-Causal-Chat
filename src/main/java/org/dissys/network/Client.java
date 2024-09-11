@@ -37,6 +37,7 @@ public class Client {
     private Map<UUID, Boolean> processedMessages;
     private final Map<String, MulticastSocket> sockets;
     private ScheduledExecutorService executor;
+    private boolean isConnected;
 
     public MulticastSocket getMulticastSocket(){
         return this.multicastSocket;
@@ -47,6 +48,7 @@ public class Client {
         this.sockets = new ConcurrentHashMap<>();
         this.localAddress = InetAddress.getLocalHost();
         this.UNICAST_PORT = MULTICAST_PORT + random.nextInt(1,500);
+        isConnected = true;
 
         AppState state = PersistenceManager.loadState();
         if (state != null) {
@@ -135,6 +137,11 @@ public class Client {
         if(!(message instanceof HeartbeatMsg)){
             //System.out.println("Sending " + message);
             logger.info("Sending " + message + "\nROOMSOCKET= " + socket + "\n");
+        }
+        if (!isNetworkAvailable()) {
+            logger.info("Network is unavailable. Queueing message." + message.toString());
+            isConnected = false;
+            return;
         }
         try {
             // Serialize the Message object
@@ -235,6 +242,12 @@ public class Client {
                         ObjectInputStream ois = new ObjectInputStream(bais);
 
                         Message message = (Message) ois.readObject();
+                        if(!message.getSenderId().equals(uuid) && !isConnected){
+                            isConnected = true;
+                            sendMulticastMessage(new ReconnectionRequestMessage(uuid, app.getStringUsername(),
+                                    app.getRoomsAsList(),
+                                    app.getDeletedRooms()));
+                        }
 /*
                         //add to peers when receiving any message;
                         if(connectedPeers.containsKey(message.getSenderId())){
@@ -513,6 +526,15 @@ public class Client {
             executor.submit(() -> handlePeer(peer));
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private boolean isNetworkAvailable() {
+        try {
+            return networkInterface.isUp() && !networkInterface.isLoopback();
+        } catch (SocketException e) {
+            logger.info("Error checking network interface: " + e.getMessage());
+            return false;
         }
     }
 }

@@ -124,14 +124,14 @@ public class ReconnectionProtocol {
             List<ReconnectionReplyMessage> repliesForUser = sensedReplies.getOrDefault(originalRequest.getSender(), Collections.emptyList());
             for (ReconnectionReplyMessage reply : repliesForUser) {
                 for (Message message : reply.getLostMessages()) {
-                    coveredMessageIds.add(message.getSenderId());
+                    coveredMessageIds.add(message.getMessageUUID());
                 }
             }
 
             for (Message message : bundleOfMessagesOtherNeeds) {
-                if (!coveredMessageIds.contains(message.getSenderId())) {
+                if (!coveredMessageIds.contains(message.getMessageUUID())) {
                     uniqueMessages.add(message);
-                    coveredMessageIds.add(message.getSenderId());
+                    coveredMessageIds.add(message.getMessageUUID());
                 }
             }
         }

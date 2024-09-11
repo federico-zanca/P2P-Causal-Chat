@@ -242,12 +242,7 @@ public class Client {
                         ObjectInputStream ois = new ObjectInputStream(bais);
 
                         Message message = (Message) ois.readObject();
-                        if(!message.getSenderId().equals(uuid) && !isConnected){
-                            isConnected = true;
-                            sendMulticastMessage(new ReconnectionRequestMessage(uuid, app.getStringUsername(),
-                                    app.getRoomsAsList(),
-                                    app.getDeletedRooms()));
-                        }
+
 /*
                         //add to peers when receiving any message;
                         if(connectedPeers.containsKey(message.getSenderId())){
@@ -263,6 +258,12 @@ public class Client {
                         // TODO: may become really expensive, should cache only the last N messages
                         if (!processedMessages.containsKey(message.getMessageUUID())) {
                             processedMessages.put(message.getMessageUUID(), true);
+                            if(!message.getSenderId().equals(uuid) && !isConnected){
+                                isConnected = true;
+                                sendMulticastMessage(new ReconnectionRequestMessage(uuid, app.getStringUsername(),
+                                        app.getRoomsAsList(),
+                                        app.getDeletedRooms()));
+                            }
                             processMessage(message);
                         }
 

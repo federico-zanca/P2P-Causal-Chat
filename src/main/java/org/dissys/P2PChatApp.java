@@ -244,7 +244,7 @@ public class P2PChatApp {
 
          */
         if(rooms.containsKey(roomId)){
-            System.out.println("Room already exists: " + roomId);
+            //System.out.println("Room already exists: " + roomId);
             return;
         }
         Room room = new Room(roomId, message.getRoomName(), client.getUUID(), message.getParticipants(), message.getMulticastIP());

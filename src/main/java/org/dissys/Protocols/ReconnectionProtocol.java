@@ -98,7 +98,7 @@ public class ReconnectionProtocol {
             // Schedule the reply with a random delay
             // EXPERIMENTAL FEATURE!!!! TEST A LOT
             if (!bundleOfMessagesOtherNeeds.isEmpty()) {
-                long delay = ThreadLocalRandom.current().nextLong(1000, 5000); // Random delay between 1-5 seconds
+                long delay = ThreadLocalRandom.current().nextLong(1, 1500); // Random delay between 1-5 seconds
                 List<Message> finalBundleOfMessagesOtherNeeds = bundleOfMessagesOtherNeeds;
                 scheduler.schedule(() -> sendDelayedReply(message, finalBundleOfMessagesOtherNeeds, app), delay, TimeUnit.MILLISECONDS);
             }

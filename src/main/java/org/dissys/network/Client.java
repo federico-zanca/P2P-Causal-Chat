@@ -20,7 +20,7 @@ public class Client {
     private static final String MULTICAST_ADDRESS = "239.1.1.1";
     private static final int MULTICAST_PORT = 5000;
     private final int UNICAST_PORT;
-    private static final long HEARTBEAT_INTERVAL = 5000; // 5 seconds
+    private static final long HEARTBEAT_INTERVAL = 5000 + (new Random().nextInt(1000)); // 5 seconds
     private static final long GOSSIP_INTERVAL = 10000; // 5 seconds
     private static final long PEER_TIMEOUT = 15000; // 15 seconds
     private static final int MAX_MSG_CACHE_SIZE = 100;

@@ -84,14 +84,14 @@ public class P2PChatApp {
                     try {
                         InetAddress group = InetAddress.getByName(delRoom.getMulticastIP());
 
-                        System.out.println("Reconnecting to room " + delRoom.getRoomName() + " with IP " + delRoom.getMulticastIP() + " (room is deleted but nobody knows yet)");
-                        System.out.println("Inet address group = " + group);
+                        //System.out.println("Reconnecting to room " + delRoom.getRoomName() + " with IP " + delRoom.getMulticastIP() + " (room is deleted but nobody knows yet)");
+                        //System.out.println("Inet address group = " + group);
 
                         MulticastSocket socket = client.connectToGroup(group, client.getPort(), delRoom.getMulticastIP());
-                        System.out.println("Opened Socket = " + socket);
+                        //System.out.println("Opened Socket = " + socket);
                         delRoom.reconnect(socket, group);
                     } catch (IOException e) {
-                        System.out.println("Failed to reconnect to room " + delRoom.getRoomName() + ": " + e.getMessage());
+                        //System.out.println("Failed to reconnect to room " + delRoom.getRoomName() + ": " + e.getMessage());
                     }
                     // The client UUID will be set when the Client is created
                 }
@@ -111,14 +111,14 @@ public class P2PChatApp {
                 try {
                     InetAddress group = InetAddress.getByName(room.getMulticastIP());
 
-                    System.out.println("Reconnecting to room " + room.getRoomName() + " with IP " + room.getMulticastIP());
-                    System.out.println("Inet address group = " + group);
+                    //System.out.println("Reconnecting to room " + room.getRoomName() + " with IP " + room.getMulticastIP());
+                    //System.out.println("Inet address group = " + group);
 
                     MulticastSocket socket = client.connectToGroup(group, client.getPort(), room.getMulticastIP());
-                    System.out.println("Opened Socket = " + socket);
+                    //System.out.println("Opened Socket = " + socket);
                     room.reconnect(socket, group);
                 } catch (IOException e) {
-                    System.out.println("Failed to reconnect to room " + room.getRoomName() + ": " + e.getMessage());
+                    //System.out.println("Failed to reconnect to room " + room.getRoomName() + ": " + e.getMessage());
                 }
                 // The client UUID will be set when the Client is created
             }
@@ -209,7 +209,7 @@ public class P2PChatApp {
             throw new RuntimeException("unable to connect to group for room " + room.getRoomId() + room.getRoomName() );
         }
 
-        System.out.println("Created room " + room.getRoomName() + " with IP " + room.getMulticastIP());
+        //System.out.println("Created room " + room.getRoomName() + " with IP " + room.getMulticastIP());
         rooms.put(roomId, room);
         client.sendMulticastMessage(new RoomCreationMessage(client.getUUID(),getStringUsername(), roomId, roomName, participants, roomMulticastIP, false));
 
@@ -220,7 +220,7 @@ public class P2PChatApp {
     public void processRoomCreationMessage(RoomCreationMessage message) {
         if(username == null || !message.getParticipants().contains(username.toString())){
             //logger.info("Room creation message not for me: " + message);
-            System.out.println("Room creation message not for me: " + message);
+            //System.out.println("Room creation message not for me: " + message);
             return;
         }
         UUID roomId = message.getRoomId();
@@ -258,9 +258,9 @@ public class P2PChatApp {
         } catch (IOException e){
             throw new RuntimeException("unable to connect to group for room " + message.getRoomId() + message.getRoomName() );
         }
-        System.out.println("Created room " + room.getRoomName() + " with IP " + room.getMulticastIP());
+        //System.out.println("Created room " + room.getRoomName() + " with IP " + room.getMulticastIP());
         rooms.put(roomId, room);
-        System.out.println("Added new room: " + room.getRoomName() + " with id " + roomId + " and multicast IP " + room.getMulticastIP());
+        //System.out.println("Added new room: " + room.getRoomName() + " with id " + roomId + " and multicast IP " + room.getMulticastIP());
 
         if (message.isLost()) {
             // Send a ReconnectionRequestMessage to the room creator
@@ -301,7 +301,7 @@ public class P2PChatApp {
 
 
         room.sendChatMessage(client, getStringUsername(), content);
-        System.out.println("Message sent to " + roomName);
+        //System.out.println("Message sent to " + roomName);
 
         //VectorClock clock = room.getLocalClock();
         //clock.incrementClock(username); //ATTENZIONE!! Se l'invio del messaggio non va a buon fine il clock rimarrà incrementato e sarebbe un bordello
@@ -321,10 +321,10 @@ public class P2PChatApp {
         room = rooms.get(roomId);
         if (room == null) {
             //logger.info("Discarding message, room not found: " + roomId);
-            System.out.println("Discarding message, room not found: " + roomId);
+            //System.out.println("Discarding message, room not found: " + roomId);
             return;
         } else if (deletedRooms.get(roomId)!=null){
-            System.out.println("Received message in deleted room: " + roomId + room.getRoomName());
+            //System.out.println("Received message in deleted room: " + roomId + room.getRoomName());
             return;
         }
 

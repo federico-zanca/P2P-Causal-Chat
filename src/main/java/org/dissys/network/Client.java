@@ -48,9 +48,7 @@ public class Client {
         this.sockets = new ConcurrentHashMap<>();
         //this.localAddress = InetAddress.getLocalHost();
         this.localAddress = getLocalIPAddress();
-        if(localAddress.isLoopbackAddress()) {
-            System.out.println("Loopback address! Critical problem");
-        }
+
         this.UNICAST_PORT = MULTICAST_PORT + random.nextInt(1,500);
 
         isConnected = true;
@@ -363,17 +361,52 @@ public class Client {
         return null;
     }
     */
+
     private NetworkInterface findNetworkInterface() throws SocketException {
         Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
         while (interfaces.hasMoreElements()) {
             NetworkInterface networkInterface = interfaces.nextElement();
-            if (networkInterface.isUp() && !networkInterface.isLoopback() && networkInterface.supportsMulticast() /*&&
-                    networkInterface.getDisplayName().contains("wlan")*/) { // Assicurati che il nome contenga "wlan" o simile
+            if (networkInterface.isUp() && !networkInterface.isLoopback() && networkInterface.supportsMulticast()) { // Assicurati che il nome contenga "wlan" o simile
                 return networkInterface;
             }
         }
         return null;
+    }/*
+    public static NetworkInterface findNetworkInterface() {
+        Enumeration<NetworkInterface> interfaces;
+        try {
+            interfaces = NetworkInterface.getNetworkInterfaces();
+        } catch (SocketException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        while (interfaces.hasMoreElements()) {
+            NetworkInterface iface = interfaces.nextElement();
+            try {
+                if (iface.isUp() && !iface.isLoopback() && hasIpAddress(iface) && iface.supportsMulticast()) {
+                    System.out.println(iface.getName());
+                    return iface;
+                }
+            } catch (SocketException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return null; // Active Wi-Fi interface not found
     }
+
+    private static boolean hasIpAddress(NetworkInterface iface) {
+        Enumeration<InetAddress> addresses = iface.getInetAddresses();
+        while (addresses.hasMoreElements()) {
+            InetAddress addr = addresses.nextElement();
+            // Exclude IPv6 addresses and loopback addresses
+            if (!addr.isLoopbackAddress() && addr.getHostAddress().indexOf(':') == -1) {
+                return true; // Found an IPv4 address
+            }
+        }
+        return false; // No valid IP address found
+    }*/
 
     public UUID getUUID(){
         return uuid;
@@ -480,7 +513,7 @@ public class Client {
     private void handleNewConnection(Socket clientSocket, UUID senderID, ObjectInputStream in) throws IOException {
         PeerInfo peer = new PeerInfo(clientSocket);
         connectedPeers.put(senderID, peer);
-        System.out.println("New peer connected: " + peer);
+        //System.out.println("New peer connected: " + peer);
         executor.submit(() -> handlePeer(peer, in));
     }
     public void sendUnicastMessage(UUID peerId, Message message) {
@@ -493,11 +526,11 @@ public class Client {
                 out.flush();
                 //System.out.println("Sent to " + peerId + ": " + message);
             } catch (IOException e) {
-                System.out.println("Failed to send message to peer: " + peerId);
+                //System.out.println("Failed to send message to peer: " + peerId);
                 connectedPeers.remove(peerId);
             }
         } else {
-            System.out.println("Peer not found: " + peerId + "for message " + message);
+            //System.out.println("Peer not found: " + peerId + "for message " + message);
         }
     }
     private void handlePeer(PeerInfo peer) {
@@ -516,7 +549,7 @@ public class Client {
 
             }
         } catch (IOException | ClassNotFoundException e) {
-            System.out.println("Connection closed with peer: " + peer.getSocket().getPort());
+            //System.out.println("Connection closed with peer: " + peer.getSocket().getPort());
             //e.printStackTrace();
         } finally {
             //connectedPeers.remove(peerUUID);
@@ -543,7 +576,7 @@ public class Client {
 
             }
         } catch (IOException | ClassNotFoundException e) {
-            System.out.println("Connection closed with peer: " + peer.getSocket().getPort());
+            //System.out.println("Connection closed with peer: " + peer.getSocket().getPort());
             //e.printStackTrace();
         } finally {
             //connectedPeers.remove(peerUUID);

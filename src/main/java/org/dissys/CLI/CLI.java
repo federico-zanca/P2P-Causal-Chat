@@ -39,8 +39,8 @@ public class CLI {
     public void start() {
         //System.out.println("CLI started");
         //System.out.println("Welcome to P2P Chat!");
-        printWelcome();
         refreshHome();
+        printWelcome();
 
         while (true) {
             String input = scanner.nextLine().trim();
@@ -60,7 +60,8 @@ public class CLI {
     }
 
     private void printWelcome() {
-        System.out.println("Welcome " + colorString(app.getStringUsername(), assignColorToName(app.getStringUsername())));
+        System.out.println("Welcome " + colorString(app.getStringUsername(), assignColorToName(app.getStringUsername())) + "!");
+        System.out.println("Use the command 'help' to list the available commands");
     }
 
 
@@ -96,7 +97,6 @@ public class CLI {
 
     public void refreshHome() {
         //refresh
-        clearConsole();
         //print top row and app name
         printHeader(TITLE, APP_INTERFACE_LENGHT);
         System.out.println("Username: " + colorString(app.getUsername().toString(), assignColorToName(app.getUsername().toString())));
@@ -306,6 +306,7 @@ public class CLI {
 
 
     public void printAsciiArtTitle() {
+        clearConsole();
         System.out.println(colorString("\n" +
                 "  _____ ___  _____     _____                          _____ _           _   \n" +
                 " |  __ \\__ \\|  __ \\   / ____|                        / ____| |         | |  \n" +

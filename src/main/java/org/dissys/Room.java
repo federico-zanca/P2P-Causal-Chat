@@ -158,12 +158,12 @@ public class Room implements Serializable {
         deliveredMessages.add(message);
         localClock.updateClock(message.getVectorClock().getClock(), message.getSender());
         if(message.isFarewell()){
-            System.out.println("Delivered message in room " + roomName + ": " + message.getSender() + " left the room");
+            //System.out.println("Delivered message in room " + roomName + ": " + message.getSender() + " left the room");
             participants.remove(message.getSender());
             pastParticipants.add(message.getSender());
         } else {
             // Notify listeners or update UI
-            System.out.println("Delivered message in room " + roomName + ": " + message.getContent() + " from " + message.getSender());
+            //System.out.println("Delivered message in room " + roomName + ": " + message.getContent() + " from " + message.getSender());
         }
     }
 

@@ -556,7 +556,7 @@ public class Client {
             try {
                 peer.getSocket().close();
             } catch (IOException e) {
-                e.printStackTrace();
+                //e.printStackTrace();
             }
         }
     }
@@ -583,7 +583,7 @@ public class Client {
             try {
                 peer.getSocket().close();
             } catch (IOException e) {
-                e.printStackTrace();
+                //e.printStackTrace();
             }
         }
     }
@@ -596,7 +596,7 @@ public class Client {
             //System.out.println("Connected to peer: " + senderId);
             executor.submit(() -> handlePeer(peer));
         } catch (IOException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
     }
 

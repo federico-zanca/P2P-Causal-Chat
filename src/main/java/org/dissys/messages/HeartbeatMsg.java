@@ -18,7 +18,8 @@ public class HeartbeatMsg extends Message{
     @Override
     public void onMessage(Client client) {
         if (!client.getConnectedPeers().containsKey(getSenderId())) {
-            //client.connectToPeer(senderAddress, senderPort, getSenderId());
+            client.connectToPeer(senderAddress, senderPort, getSenderId());
+            client.sendUnicastMessage(getSenderId(), new DiscoveryAckMsg(client.getUUID(), client.getLocalAddress(), client.getUNICAST_PORT()));
         }else {
             client.getConnectedPeers().get(getSenderId()).setConnectionTimer(System.currentTimeMillis());
         }

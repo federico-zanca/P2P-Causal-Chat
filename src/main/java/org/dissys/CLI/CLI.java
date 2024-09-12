@@ -97,6 +97,7 @@ public class CLI {
 
     public void refreshHome() {
         //refresh
+        clearConsole();
         //print top row and app name
         printHeader(TITLE, APP_INTERFACE_LENGHT);
         System.out.println("Username: " + colorString(app.getUsername().toString(), assignColorToName(app.getUsername().toString())));

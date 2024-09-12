@@ -328,7 +328,7 @@ public class P2PChatApp {
             return;
         }
 
-        room.receiveMessage(message);
+        room.receiveMessage(message, this);
         if(message.isFarewell()){
             LeaveRoomACK ack = new LeaveRoomACK(client.getUUID(), room.getRoomId(), message.getSender());
             client.sendMulticastMessage(ack, room.getRoomMulticastSocket(), room.getRoomMulticastGroup());

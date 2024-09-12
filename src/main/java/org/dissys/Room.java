@@ -1,7 +1,9 @@
 package org.dissys;
 
+import org.dissys.Protocols.Username.Username;
 import org.dissys.messages.ChatMessage;
 import org.dissys.messages.LeaveRoomACK;
+import org.dissys.messages.ReconnectionRequestMessage;
 import org.dissys.network.Client;
 
 
@@ -10,6 +12,8 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
+
 
 
 public class Room implements Serializable {
@@ -57,12 +61,12 @@ public class Room implements Serializable {
      *
      * @param message The received message.
      */
-    public void receiveMessage(ChatMessage message) {
+    public void receiveMessage(ChatMessage message, P2PChatApp app) {
         if(message.getVectorClock().isObsoleteWithRespectTo(localClock)) {
             return;
         }
         messageBuffer.offer(message);
-        processMessages();
+        processMessages(app);
         //wait for 2 sec and then print delivered messages and buffered messages
 
         //This will all be removed later, for debugging
@@ -87,7 +91,7 @@ public class Room implements Serializable {
     /**
      * Processes the message buffer, attempting to deliver any messages that can be delivered in causal order.
      */
-    private void processMessages() {
+    private void processMessages(P2PChatApp app) {
         boolean delivered;
         ChatMessage msg;
         do {
@@ -103,7 +107,10 @@ public class Room implements Serializable {
                     msg = message;
                     iterator.remove();
                     delivered = true;
-
+                } else {
+                    // reconnectionMessage
+                    ReconnectionRequestMessage askForUpdate = new ReconnectionRequestMessage(localPeerId, app.getStringUsername(), app.getRoomsAsList(), app.getDeletedRooms());
+                    app.sendMessage(askForUpdate);
                 }
             }
         } while (delivered);
@@ -165,7 +172,7 @@ public class Room implements Serializable {
         messageClock.incrementClock(sender);
         ChatMessage message = new ChatMessage(localPeerId, sender, roomId, content, messageClock);
         client.sendMulticastMessage(message, this.roomMulticastSocket, this.roomMulticastGroup);
-        receiveMessage(message);
+        receiveMessage(message, client.getApp());
     }
 
     public List<ChatMessage> getDeliveredMessages() {

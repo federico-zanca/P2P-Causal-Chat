@@ -28,8 +28,8 @@ The project is implemented in **Java** as a real distributed application using p
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/federico-zanca/Distributed-Systems-Project.git
-   cd Distributed-Systems-Project
+   git clone https://github.com/federico-zanca/P2P-Causal-Chat.git
+   cd P2P-Causal-Chat
    ```
 2. Run the application using the provided JAR artifact:
    ```bash
